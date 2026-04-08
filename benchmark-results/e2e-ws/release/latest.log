@@ -1,0 +1,31 @@
+=== WebSocket E2E Benchmark (JSON vs Avro) ===
+node         : v24.14.0
+platform     : linux x64
+server       : ws://127.0.0.1:43120
+messages     : 20,000 per mode
+warmup       : 2,000 per mode
+concurrency  : 128
+
+=== JSON ===
+latency   median=2.66ms p95=4.00ms avg=3.21ms stddev=4.02ms
+throughput: 37,240 msg/s
+bytes     req=3.77 MB (179.6 avg)
+          res=1.64 MB (78.0 avg)
+
+=== AVRO ===
+latency   median=3.50ms p95=6.40ms avg=4.07ms stddev=3.34ms
+throughput: 30,221 msg/s
+bytes     req=1.78 MB (84.8 avg)
+          res=988.28 KB (46.0 avg)
+
+=== Delta (Avro vs JSON) ===
+median latency : -31.75% (slower)
+throughput     : -18.85% (lower)
+request bytes  : 52.77% smaller
+response bytes : 41.03% smaller
+
+=== Artifacts ===
+json    : benchmark-results/e2e-ws/release/latest.json
+csv     : benchmark-results/e2e-ws/release/latest.csv
+markdown: benchmark-results/e2e-ws/release/latest.md
+log     : benchmark-results/e2e-ws/release/latest.log

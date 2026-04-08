@@ -1,0 +1,79 @@
+{
+  "metadata": {
+    "benchmarkName": "Server-to-Server HTTP Benchmark (JSON vs Avro)",
+    "generatedAt": "2026-04-08T08:41:06.126Z",
+    "node": "v24.14.0",
+    "platform": "linux x64",
+    "host": "127.0.0.1",
+    "port": 43110,
+    "requests": 4000,
+    "warmup": 400,
+    "concurrency": 64
+  },
+  "summary": [
+    {
+      "mode": "json",
+      "requests": 4000,
+      "concurrency": 64,
+      "median_ms": 15.985811999999896,
+      "p95_ms": 31.571613999999954,
+      "throughput_req_s": 2956.3221655331845,
+      "req_bytes_total": 1149540,
+      "res_bytes_total": 417000,
+      "avg_req_bytes": 287.385,
+      "avg_res_bytes": 104.25
+    },
+    {
+      "mode": "avro",
+      "requests": 4000,
+      "concurrency": 64,
+      "median_ms": 16.31418100000019,
+      "p95_ms": 28.086256999999932,
+      "throughput_req_s": 3444.6123535088714,
+      "req_bytes_total": 581967,
+      "res_bytes_total": 177000,
+      "avg_req_bytes": 145.49175,
+      "avg_res_bytes": 44.25
+    }
+  ],
+  "results": [
+    {
+      "mode": "json",
+      "requests": 4000,
+      "concurrency": 64,
+      "summary": {
+        "min": 2.2042239999999538,
+        "median": 15.985811999999896,
+        "p95": 31.571613999999954,
+        "max": 376.40762500000005,
+        "mean": 21.578927912249977,
+        "stddev": 32.22913397628058
+      },
+      "throughput": 2956.3221655331845,
+      "bytes": {
+        "reqBytes": 1149540,
+        "resBytes": 417000,
+        "requests": 4000
+      }
+    },
+    {
+      "mode": "avro",
+      "requests": 4000,
+      "concurrency": 64,
+      "summary": {
+        "min": 5.6810859999995955,
+        "median": 16.31418100000019,
+        "p95": 28.086256999999932,
+        "max": 251.0741069999999,
+        "mean": 18.497179424000034,
+        "stddev": 12.630916329298245
+      },
+      "throughput": 3444.6123535088714,
+      "bytes": {
+        "reqBytes": 581967,
+        "resBytes": 177000,
+        "requests": 4000
+      }
+    }
+  ]
+}

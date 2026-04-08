@@ -1,0 +1,31 @@
+=== Server-to-Server HTTP Benchmark (JSON vs Avro) ===
+node         : v24.14.0
+platform     : linux x64
+server       : http://127.0.0.1:43110
+requests     : 4,000 per mode
+warmup       : 400 per mode
+concurrency  : 64
+
+=== JSON ===
+latency   median=15.99ms p95=31.57ms avg=21.58ms stddev=32.23ms
+throughput: 2,956 req/s
+bytes     req=1.10 MB (287.4 avg)
+          res=407.23 KB (104.3 avg)
+
+=== AVRO ===
+latency   median=16.31ms p95=28.09ms avg=18.50ms stddev=12.63ms
+throughput: 3,445 req/s
+bytes     req=568.33 KB (145.5 avg)
+          res=172.85 KB (44.3 avg)
+
+=== Delta (Avro vs JSON) ===
+median latency : -2.05% (slower)
+throughput     : 16.52% (higher)
+request bytes  : 49.37% smaller
+response bytes : 57.55% smaller
+
+=== Artifacts ===
+json    : benchmark-results/s2s/latest/latest.json
+csv     : benchmark-results/s2s/latest/latest.csv
+markdown: benchmark-results/s2s/latest/latest.md
+log     : benchmark-results/s2s/latest/latest.log

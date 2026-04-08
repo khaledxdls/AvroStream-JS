@@ -38,6 +38,13 @@
     "bench:avro-vs-json": "node scripts/benchmark-avro-vs-json.mjs",
     "bench:avro-vs-json:gc": "node --expose-gc scripts/benchmark-avro-vs-json.mjs",
     "bench:avro-vs-json:release": "OUTPUT_DIR=benchmark-results/avro-vs-json/release SCENARIOS=20000,50000,100000 WARMUP_ROUNDS=3 ROUNDS=10 node --expose-gc scripts/benchmark-avro-vs-json.mjs",
+    "bench:e2e:web": "npm run build && node scripts/benchmark-e2e-web.mjs",
+    "bench:e2e:web:release": "npm run build && OUTPUT_DIR=benchmark-results/e2e-web/release REQUESTS=10000 WARMUP=1000 CONCURRENCY=48 node scripts/benchmark-e2e-web.mjs",
+    "bench:e2e:ws": "npm run build && node scripts/benchmark-e2e-ws.mjs",
+    "bench:e2e:ws:release": "npm run build && OUTPUT_DIR=benchmark-results/e2e-ws/release REQUESTS=20000 WARMUP=2000 CONCURRENCY=128 node scripts/benchmark-e2e-ws.mjs",
+    "bench:s2s": "npm run build && BENCHMARK_NAME='Server-to-Server HTTP Benchmark (JSON vs Avro)' OUTPUT_DIR=benchmark-results/s2s/latest node scripts/benchmark-e2e-web.mjs",
+    "bench:s2s:release": "npm run build && BENCHMARK_NAME='Server-to-Server HTTP Benchmark (JSON vs Avro)' OUTPUT_DIR=benchmark-results/s2s/release REQUESTS=12000 WARMUP=1200 CONCURRENCY=96 node scripts/benchmark-e2e-web.mjs",
+    "bench:dashboard": "node scripts/generate-benchmark-dashboard.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
@@ -75,6 +82,7 @@
     "eslint": "^8.56.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0",
-    "vitest": "^4.1.3"
+    "vitest": "^4.1.3",
+    "ws": "^8.18.3"
   }
 }

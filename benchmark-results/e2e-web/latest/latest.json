@@ -1,0 +1,78 @@
+{
+  "metadata": {
+    "generatedAt": "2026-04-08T08:30:18.195Z",
+    "node": "v24.14.0",
+    "platform": "linux x64",
+    "host": "127.0.0.1",
+    "port": 43110,
+    "requests": 1500,
+    "warmup": 150,
+    "concurrency": 24
+  },
+  "summary": [
+    {
+      "mode": "json",
+      "requests": 1500,
+      "concurrency": 24,
+      "median_ms": 7.704187999999931,
+      "p95_ms": 19.551086000000055,
+      "throughput_req_s": 2257.153274227668,
+      "req_bytes_total": 431042,
+      "res_bytes_total": 156375,
+      "avg_req_bytes": 287.36133333333333,
+      "avg_res_bytes": 104.25
+    },
+    {
+      "mode": "avro",
+      "requests": 1500,
+      "concurrency": 24,
+      "median_ms": 8.494947000000138,
+      "p95_ms": 18.92001499999992,
+      "throughput_req_s": 2508.192664371518,
+      "req_bytes_total": 218213,
+      "res_bytes_total": 66375,
+      "avg_req_bytes": 145.47533333333334,
+      "avg_res_bytes": 44.25
+    }
+  ],
+  "results": [
+    {
+      "mode": "json",
+      "requests": 1500,
+      "concurrency": 24,
+      "summary": {
+        "min": 2.49162199999995,
+        "median": 7.704187999999931,
+        "p95": 19.551086000000055,
+        "max": 108.08324099999999,
+        "mean": 10.580723175333334,
+        "stddev": 9.542823034212283
+      },
+      "throughput": 2257.153274227668,
+      "bytes": {
+        "reqBytes": 431042,
+        "resBytes": 156375,
+        "requests": 1500
+      }
+    },
+    {
+      "mode": "avro",
+      "requests": 1500,
+      "concurrency": 24,
+      "summary": {
+        "min": 2.9092540000001463,
+        "median": 8.494947000000138,
+        "p95": 18.92001499999992,
+        "max": 45.72647600000005,
+        "mean": 9.524592094666673,
+        "stddev": 3.871175673043739
+      },
+      "throughput": 2508.192664371518,
+      "bytes": {
+        "reqBytes": 218213,
+        "resBytes": 66375,
+        "requests": 1500
+      }
+    }
+  ]
+}

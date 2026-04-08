@@ -165,6 +165,148 @@ Current baseline summary:
 
 These values are from the latest recorded run in this repository and are hardware/runtime dependent.
 
+### Benchmark Interpretation
+
+When Avro usually wins:
+
+- Payload size matters (network-bound paths, mobile, inter-region traffic).
+- Structured records are stable and repetitive (high key-name overhead in JSON).
+- CPU budget is sufficient for binary encode/decode and schema negotiation is amortized.
+
+When JSON can win:
+
+- Very small messages and ultra-low-latency local links where serialization overhead dominates.
+- Workloads dominated by JavaScript object creation/parsing hot paths tuned for JSON.
+- Systems requiring human-readable payloads directly in logs without separate tooling.
+
+How to read these benchmark outputs:
+
+- `Throughput delta` > 0 means Avro handles more requests/messages per second.
+- `Median latency delta` > 0 means Avro is faster on median latency; < 0 means slower.
+- `Request/Response payload bytes delta` shows bandwidth savings, where Avro consistently performs best in this repo.
+- Use release profiles for publish decisions, not quick smoke runs.
+
+Consolidated dashboard:
+
+- [benchmark-results/benchmark-dashboard.md](benchmark-results/benchmark-dashboard.md)
+
+Generate/update dashboard:
+
+```bash
+npm run bench:dashboard
+```
+
+### Real Client/Server E2E Benchmark
+
+This benchmark runs a real local HTTP server and real client requests (web-style interaction) to compare JSON vs Avro end-to-end behavior, including serialization, transport framing, parsing, and latency.
+
+```bash
+npm run bench:e2e:web
+```
+
+Release-grade profile:
+
+```bash
+npm run bench:e2e:web:release
+```
+
+Controls:
+
+- `REQUESTS` requests per mode (default `5000`)
+- `WARMUP` warmup requests per mode (default `300`)
+- `CONCURRENCY` concurrent in-flight requests (default `32`)
+- `HOST` / `PORT` (defaults `127.0.0.1` / `43110`)
+- `OUTPUT_DIR` artifacts path (default `benchmark-results/e2e-web/latest`)
+
+Artifacts:
+
+- [benchmark-results/e2e-web/latest/latest.log](benchmark-results/e2e-web/latest/latest.log)
+- [benchmark-results/e2e-web/latest/latest.json](benchmark-results/e2e-web/latest/latest.json)
+- [benchmark-results/e2e-web/latest/latest.csv](benchmark-results/e2e-web/latest/latest.csv)
+- [benchmark-results/e2e-web/latest/latest.md](benchmark-results/e2e-web/latest/latest.md)
+
+### WebSocket E2E Benchmark
+
+This benchmark uses a real local WebSocket server and compares JSON string messages vs Avro-framed messages using `AvroSocket`.
+
+```bash
+npm run bench:e2e:ws
+```
+
+Release-grade profile:
+
+```bash
+npm run bench:e2e:ws:release
+```
+
+Controls:
+
+- `REQUESTS` messages per mode (default `6000`)
+- `WARMUP` warmup messages per mode (default `600`)
+- `CONCURRENCY` in-flight messages (default `64`)
+- `HOST` / `PORT` (defaults `127.0.0.1` / `43120`)
+- `OUTPUT_DIR` artifacts path (default `benchmark-results/e2e-ws/latest`)
+
+Artifacts:
+
+- [benchmark-results/e2e-ws/latest/latest.log](benchmark-results/e2e-ws/latest/latest.log)
+- [benchmark-results/e2e-ws/latest/latest.json](benchmark-results/e2e-ws/latest/latest.json)
+- [benchmark-results/e2e-ws/latest/latest.csv](benchmark-results/e2e-ws/latest/latest.csv)
+- [benchmark-results/e2e-ws/latest/latest.md](benchmark-results/e2e-ws/latest/latest.md)
+
+Release artifacts:
+
+- [benchmark-results/e2e-ws/release/latest.log](benchmark-results/e2e-ws/release/latest.log)
+- [benchmark-results/e2e-ws/release/latest.json](benchmark-results/e2e-ws/release/latest.json)
+- [benchmark-results/e2e-ws/release/latest.csv](benchmark-results/e2e-ws/release/latest.csv)
+- [benchmark-results/e2e-ws/release/latest.md](benchmark-results/e2e-ws/release/latest.md)
+
+Release baseline summary (`REQUESTS=20000`, `WARMUP=2000`, `CONCURRENCY=128`):
+
+| Metric | Result |
+|---|---:|
+| Throughput delta (Avro vs JSON) | -18.85% |
+| Median latency delta (Avro vs JSON) | -31.75% |
+| Request payload bytes delta | -52.77% |
+| Response payload bytes delta | -41.03% |
+
+### Server-to-Server Benchmark
+
+This profile measures Node service-to-service HTTP interaction (JSON vs Avro) using the same real request path but with higher default throughput settings.
+
+```bash
+npm run bench:s2s
+```
+
+Release-grade profile:
+
+```bash
+npm run bench:s2s:release
+```
+
+Artifacts:
+
+- [benchmark-results/s2s/latest/latest.log](benchmark-results/s2s/latest/latest.log)
+- [benchmark-results/s2s/latest/latest.json](benchmark-results/s2s/latest/latest.json)
+- [benchmark-results/s2s/latest/latest.csv](benchmark-results/s2s/latest/latest.csv)
+- [benchmark-results/s2s/latest/latest.md](benchmark-results/s2s/latest/latest.md)
+
+Release artifacts:
+
+- [benchmark-results/s2s/release/latest.log](benchmark-results/s2s/release/latest.log)
+- [benchmark-results/s2s/release/latest.json](benchmark-results/s2s/release/latest.json)
+- [benchmark-results/s2s/release/latest.csv](benchmark-results/s2s/release/latest.csv)
+- [benchmark-results/s2s/release/latest.md](benchmark-results/s2s/release/latest.md)
+
+Release baseline summary (`REQUESTS=12000`, `WARMUP=1200`, `CONCURRENCY=96`):
+
+| Metric | Result |
+|---|---:|
+| Throughput delta (Avro vs JSON) | +1.56% |
+| Median latency delta (Avro vs JSON) | -5.66% |
+| Request payload bytes delta | -49.37% |
+| Response payload bytes delta | -57.55% |
+
 ## Error Handling
 
 All errors extend `AvroStreamError`:
