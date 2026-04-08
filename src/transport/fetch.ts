@@ -22,6 +22,10 @@ export interface FetchTransportConfig {
   readonly debug: DebugLogger;
   readonly autoInfer: boolean;
   readonly fetchImpl: typeof globalThis.fetch;
+  readonly inference?: {
+    readonly maxDepth?: number;
+    readonly maxNodes?: number;
+  };
 }
 
 export class FetchTransport {
@@ -38,32 +42,33 @@ export class FetchTransport {
     path: string,
     options: AvroFetchOptions = {},
   ): Promise<Record<string, unknown>> {
+    const safeOptions = cloneFetchOptions(options);
     const url = `${this._config.endpoint}${path}`;
-    const method = options.method?.toUpperCase() ?? 'GET';
-    const headers: Record<string, string> = { ...options.headers };
+    const method = safeOptions.method?.toUpperCase() ?? 'GET';
+    const headers: Record<string, string> = { ...safeOptions.headers };
 
     let wireBody: Uint8Array | undefined;
     let schemaName = '';
 
     // ── Encode the request body ──────────────────────────────────────
-    if (options.body && method !== 'GET' && method !== 'HEAD') {
-      const { entry, fp } = this._resolveSchema(path, options.body);
+    if (safeOptions.body && method !== 'GET' && method !== 'HEAD') {
+      const { entry, fp } = this._resolveSchema(path, safeOptions.body);
       schemaName = entry.schema.name;
-      const binary = encode(entry, options.body);
+      const binary = encode(entry, safeOptions.body);
 
       headers['Content-Type'] = 'application/avro';
       headers['X-Schema-ID'] = fingerprintToHex(fp);
 
       wireBody = frameForWire({ fingerprint: fp, data: binary });
 
-      this._config.debug.log('outgoing', path, schemaName, options.body, binary.length);
+      this._config.debug.log('outgoing', path, schemaName, safeOptions.body, binary.length);
     }
 
     // ── First attempt ────────────────────────────────────────────────
     const requestInit: RequestInit = {
       method,
       headers,
-      signal: options.signal,
+      signal: safeOptions.signal,
     };
     if (wireBody) {
       requestInit.body = wireBody as unknown as BodyInit;
@@ -72,7 +77,7 @@ export class FetchTransport {
 
     // ── Handle 406 negotiation ───────────────────────────────────────
     if (response.status === 406 && response.headers.get('X-Avro-Missing-Schema') === 'true') {
-      response = await this._retryWithFullSchema(url, method, headers, options, path);
+      response = await this._retryWithFullSchema(url, method, headers, safeOptions, path);
     }
 
     if (!response.ok) {
@@ -103,7 +108,7 @@ export class FetchTransport {
       );
     }
 
-    const schema = inferSchema(body);
+    const schema = inferSchema(body, undefined, this._config.inference);
     const fp = this._config.registry.register(schema, path);
     const entry = this._config.registry.getByFingerprint(fp);
     return { entry, fp };
@@ -172,4 +177,15 @@ export class FetchTransport {
 
     return decoded;
   }
+}
+
+function cloneFetchOptions(options: AvroFetchOptions): AvroFetchOptions {
+  return {
+    method: options.method,
+    signal: options.signal,
+    headers: options.headers ? { ...options.headers } : undefined,
+    body: options.body
+      ? (structuredClone(options.body) as Record<string, unknown>)
+      : undefined,
+  };
 }

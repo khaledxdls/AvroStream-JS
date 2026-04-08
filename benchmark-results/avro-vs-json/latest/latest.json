@@ -1,0 +1,277 @@
+{
+  "metadata": {
+    "generatedAt": "2026-04-08T08:17:03.824Z",
+    "node": "v24.14.0",
+    "platform": "linux x64",
+    "warmupRounds": 1,
+    "rounds": 2,
+    "scenarios": [
+      5000,
+      20000,
+      50000
+    ],
+    "gcEnabled": true
+  },
+  "summary": [
+    {
+      "scenario": "CheckoutEvent workload",
+      "records": 5000,
+      "avro_encode_median_ms": 8.205065000000005,
+      "json_encode_median_ms": 11.227251999999993,
+      "avro_decode_median_ms": 6.540936000000016,
+      "json_decode_median_ms": 7.313737000000003,
+      "avro_encode_ops_s": 609379.6941279559,
+      "json_encode_ops_s": 445344.95172995166,
+      "avro_decode_ops_s": 764416.5911423055,
+      "json_decode_ops_s": 683645.0367301966,
+      "avro_bytes": 723068,
+      "json_bytes": 1787239,
+      "size_reduction_percent": 59.54273603026792,
+      "encode_avro_faster_percent": 26.91831447267764,
+      "decode_avro_faster_percent": 10.566431360602476
+    },
+    {
+      "scenario": "CheckoutEvent workload",
+      "records": 20000,
+      "avro_encode_median_ms": 22.928791999999987,
+      "json_encode_median_ms": 40.098554000000036,
+      "avro_decode_median_ms": 26.94797299999999,
+      "json_decode_median_ms": 29.29735100000005,
+      "avro_encode_ops_s": 872265.7521599921,
+      "json_encode_ops_s": 498771.1028183206,
+      "avro_decode_ops_s": 742170.8489911285,
+      "json_decode_ops_s": 682655.575242962,
+      "avro_bytes": 2892554,
+      "json_bytes": 7149261,
+      "size_reduction_percent": 59.54051754440074,
+      "encode_avro_faster_percent": 42.81890563934059,
+      "decode_avro_faster_percent": 8.019079950265997
+    },
+    {
+      "scenario": "CheckoutEvent workload",
+      "records": 50000,
+      "avro_encode_median_ms": 55.823872999999935,
+      "json_encode_median_ms": 99.49651100000005,
+      "avro_decode_median_ms": 60.16533699999991,
+      "json_decode_median_ms": 74.91621600000008,
+      "avro_encode_ops_s": 895674.15001822,
+      "json_encode_ops_s": 502530.184199122,
+      "avro_decode_ops_s": 831043.2965745721,
+      "json_decode_ops_s": 667412.2462351802,
+      "avro_bytes": 7231488,
+      "json_bytes": 17873254,
+      "size_reduction_percent": 59.540171028733766,
+      "encode_avro_faster_percent": 43.89363763720328,
+      "decode_avro_faster_percent": 19.68983457466692
+    }
+  ],
+  "results": [
+    {
+      "name": "CheckoutEvent workload",
+      "count": 5000,
+      "avroBytes": 723068,
+      "jsonBytes": 1787239,
+      "reductionPercent": 59.5427,
+      "operations": {
+        "avroEncode": {
+          "opsPerSec": 609379.6941279559,
+          "summary": {
+            "min": 8.205065000000005,
+            "median": 8.205065000000005,
+            "p95": 9.297660000000008,
+            "max": 9.297660000000008,
+            "mean": 8.751362500000006,
+            "stddev": 0.5462975000000014
+          },
+          "samplesMs": [
+            8.205065000000005,
+            9.297660000000008
+          ]
+        },
+        "jsonEncode": {
+          "opsPerSec": 445344.95172995166,
+          "summary": {
+            "min": 11.227251999999993,
+            "median": 11.227251999999993,
+            "p95": 11.284516999999994,
+            "max": 11.284516999999994,
+            "mean": 11.255884499999993,
+            "stddev": 0.028632500000000505
+          },
+          "samplesMs": [
+            11.284516999999994,
+            11.227251999999993
+          ]
+        },
+        "avroDecode": {
+          "opsPerSec": 764416.5911423055,
+          "summary": {
+            "min": 6.540936000000016,
+            "median": 6.540936000000016,
+            "p95": 8.647669000000008,
+            "max": 8.647669000000008,
+            "mean": 7.594302500000012,
+            "stddev": 1.0533664999999957
+          },
+          "samplesMs": [
+            6.540936000000016,
+            8.647669000000008
+          ]
+        },
+        "jsonDecode": {
+          "opsPerSec": 683645.0367301966,
+          "summary": {
+            "min": 7.313737000000003,
+            "median": 7.313737000000003,
+            "p95": 7.513121000000012,
+            "max": 7.513121000000012,
+            "mean": 7.413429000000008,
+            "stddev": 0.09969200000000455
+          },
+          "samplesMs": [
+            7.513121000000012,
+            7.313737000000003
+          ]
+        }
+      }
+    },
+    {
+      "name": "CheckoutEvent workload",
+      "count": 20000,
+      "avroBytes": 2892554,
+      "jsonBytes": 7149261,
+      "reductionPercent": 59.5405,
+      "operations": {
+        "avroEncode": {
+          "opsPerSec": 872265.7521599921,
+          "summary": {
+            "min": 22.928791999999987,
+            "median": 22.928791999999987,
+            "p95": 31.776513000000023,
+            "max": 31.776513000000023,
+            "mean": 27.352652500000005,
+            "stddev": 4.423860500000018
+          },
+          "samplesMs": [
+            31.776513000000023,
+            22.928791999999987
+          ]
+        },
+        "jsonEncode": {
+          "opsPerSec": 498771.1028183206,
+          "summary": {
+            "min": 40.098554000000036,
+            "median": 40.098554000000036,
+            "p95": 52.52496500000001,
+            "max": 52.52496500000001,
+            "mean": 46.31175950000002,
+            "stddev": 6.213205499999987
+          },
+          "samplesMs": [
+            52.52496500000001,
+            40.098554000000036
+          ]
+        },
+        "avroDecode": {
+          "opsPerSec": 742170.8489911285,
+          "summary": {
+            "min": 26.94797299999999,
+            "median": 26.94797299999999,
+            "p95": 28.38073099999997,
+            "max": 28.38073099999997,
+            "mean": 27.66435199999998,
+            "stddev": 0.7163789999999892
+          },
+          "samplesMs": [
+            26.94797299999999,
+            28.38073099999997
+          ]
+        },
+        "jsonDecode": {
+          "opsPerSec": 682655.575242962,
+          "summary": {
+            "min": 29.29735100000005,
+            "median": 29.29735100000005,
+            "p95": 30.835729000000015,
+            "max": 30.835729000000015,
+            "mean": 30.066540000000032,
+            "stddev": 0.769188999999983
+          },
+          "samplesMs": [
+            29.29735100000005,
+            30.835729000000015
+          ]
+        }
+      }
+    },
+    {
+      "name": "CheckoutEvent workload",
+      "count": 50000,
+      "avroBytes": 7231488,
+      "jsonBytes": 17873254,
+      "reductionPercent": 59.5402,
+      "operations": {
+        "avroEncode": {
+          "opsPerSec": 895674.15001822,
+          "summary": {
+            "min": 55.823872999999935,
+            "median": 55.823872999999935,
+            "p95": 71.60710700000004,
+            "max": 71.60710700000004,
+            "mean": 63.71548999999999,
+            "stddev": 7.891617000000053
+          },
+          "samplesMs": [
+            55.823872999999935,
+            71.60710700000004
+          ]
+        },
+        "jsonEncode": {
+          "opsPerSec": 502530.184199122,
+          "summary": {
+            "min": 99.49651100000005,
+            "median": 99.49651100000005,
+            "p95": 127.56424700000002,
+            "max": 127.56424700000002,
+            "mean": 113.53037900000004,
+            "stddev": 14.033867999999984
+          },
+          "samplesMs": [
+            99.49651100000005,
+            127.56424700000002
+          ]
+        },
+        "avroDecode": {
+          "opsPerSec": 831043.2965745721,
+          "summary": {
+            "min": 60.16533699999991,
+            "median": 60.16533699999991,
+            "p95": 83.67383700000005,
+            "max": 83.67383700000005,
+            "mean": 71.91958699999998,
+            "stddev": 11.75425000000007
+          },
+          "samplesMs": [
+            83.67383700000005,
+            60.16533699999991
+          ]
+        },
+        "jsonDecode": {
+          "opsPerSec": 667412.2462351802,
+          "summary": {
+            "min": 74.91621600000008,
+            "median": 74.91621600000008,
+            "p95": 81.60027600000012,
+            "max": 81.60027600000012,
+            "mean": 78.2582460000001,
+            "stddev": 3.3420300000000225
+          },
+          "samplesMs": [
+            74.91621600000008,
+            81.60027600000012
+          ]
+        }
+      }
+    }
+  ]
+}

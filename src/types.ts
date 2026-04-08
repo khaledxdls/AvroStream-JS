@@ -73,6 +73,17 @@ export interface AvroClientConfig {
    * Defaults to globalThis.fetch.
    */
   readonly fetch?: typeof globalThis.fetch;
+
+  /**
+   * Custom network listener strategy for environment-specific online detection.
+   * Defaults to BrowserNetworkListener in browser contexts and NodeNetworkListener in Node.js.
+   */
+  readonly networkListener?: NetworkListener;
+
+  /**
+   * Runtime schema inference safety limits.
+   */
+  readonly inference?: InferenceConfig;
 }
 
 /** Options for a single fetch call, mirroring RequestInit. */
@@ -81,6 +92,24 @@ export interface AvroFetchOptions {
   readonly headers?: Record<string, string>;
   readonly body?: Record<string, unknown>;
   readonly signal?: AbortSignal;
+}
+
+/** Runtime safeguards for synchronous schema inference. */
+export interface InferenceConfig {
+  /** Maximum recursive object depth permitted during inference. */
+  readonly maxDepth?: number;
+  /** Maximum traversed nodes permitted during inference. */
+  readonly maxNodes?: number;
+}
+
+/** Strategy interface for online/offline detection across environments. */
+export interface NetworkListener {
+  /** Returns the current connectivity state. */
+  isOnline(): boolean;
+  /** Subscribe to transitions from offline to online. Returns unsubscribe fn. */
+  onOnline(listener: () => void): () => void;
+  /** Optional lifecycle cleanup. */
+  destroy?(): void;
 }
 
 /** Internal representation of an encoded wire payload. */

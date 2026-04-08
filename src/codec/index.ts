@@ -55,6 +55,32 @@ export function decode(
 }
 
 /**
+ * Resolve payload encoded with a writer schema into a reader schema and
+ * re-encode with the reader schema for transport compatibility.
+ */
+export function resolveToReaderSchema(
+  writerEntry: RegistryEntry,
+  readerEntry: RegistryEntry,
+  data: Uint8Array,
+): Uint8Array {
+  try {
+    const source = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
+    const resolver = readerEntry.type.createResolver(writerEntry.type);
+    const projected = readerEntry.type.fromBuffer(source, resolver) as Record<string, unknown>;
+    const result = readerEntry.type.toBuffer(projected);
+    return new Uint8Array(result.buffer, result.byteOffset, result.byteLength);
+  } catch (err) {
+    throw new CodecError(
+      `Schema resolution failed from writer "${writerEntry.schema.name}" ` +
+        `to reader "${readerEntry.schema.name}": ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+      { cause: err },
+    );
+  }
+}
+
+/**
  * Frame data for the wire: [8-byte fingerprint][encoded data].
  */
 export function frameForWire(payload: WirePayload): Uint8Array {

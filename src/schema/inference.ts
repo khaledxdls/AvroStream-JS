@@ -9,6 +9,13 @@
 import type { AvroField, AvroRecordSchema, AvroSchemaType } from '../types.js';
 import { AvroCircularReferenceError, InferenceError } from '../errors/index.js';
 
+interface InferenceState {
+  readonly seen: WeakSet<object>;
+  readonly maxDepth: number;
+  readonly maxNodes: number;
+  nodesVisited: number;
+}
+
 let recordCounter = 0;
 
 /** Reset the internal counter (useful in tests). */
@@ -25,31 +32,43 @@ export function resetInferenceCounter(): void {
 export function inferSchema(
   obj: Record<string, unknown>,
   name?: string,
+  options?: {
+    readonly maxDepth?: number;
+    readonly maxNodes?: number;
+  },
 ): AvroRecordSchema {
-  const seen = new WeakSet<object>();
-  return inferRecord(obj, name ?? `AutoRecord_${recordCounter++}`, '', seen);
+  const state: InferenceState = {
+    seen: new WeakSet<object>(),
+    maxDepth: options?.maxDepth ?? 32,
+    maxNodes: options?.maxNodes ?? 50_000,
+    nodesVisited: 0,
+  };
+
+  return inferRecord(obj, name ?? `AutoRecord_${recordCounter++}`, '', 0, state);
 }
 
 function inferRecord(
   obj: Record<string, unknown>,
   name: string,
   parentPath: string,
-  seen: WeakSet<object>,
+  depth: number,
+  state: InferenceState,
 ): AvroRecordSchema {
-  if (seen.has(obj)) {
+  if (state.seen.has(obj)) {
     throw new AvroCircularReferenceError(parentPath || name);
   }
-  seen.add(obj);
+  enforceInferenceLimits(parentPath || name, depth, state);
+  state.seen.add(obj);
 
   const fields: AvroField[] = [];
 
   for (const [key, value] of Object.entries(obj)) {
     const fieldPath = parentPath ? `${parentPath}.${key}` : key;
-    const type = inferType(value, key, fieldPath, seen);
+    const type = inferType(value, key, fieldPath, depth + 1, state);
     fields.push({ name: key, type });
   }
 
-  seen.delete(obj);
+  state.seen.delete(obj);
   return { type: 'record', name, fields };
 }
 
@@ -57,8 +76,11 @@ function inferType(
   value: unknown,
   fieldName: string,
   path: string,
-  seen: WeakSet<object>,
+  depth: number,
+  state: InferenceState,
 ): AvroSchemaType {
+  enforceInferenceLimits(path, depth, state);
+
   if (value === null || value === undefined) {
     // Nullable — we default to nullable string since we can't know the real type.
     return ['null', 'string'];
@@ -83,7 +105,7 @@ function inferType(
       }
 
       if (Array.isArray(value)) {
-        return inferArrayType(value, fieldName, path, seen);
+        return inferArrayType(value, fieldName, path, depth + 1, state);
       }
 
       // Plain object → nested record
@@ -91,7 +113,8 @@ function inferType(
         value as Record<string, unknown>,
         `${fieldName.charAt(0).toUpperCase()}${fieldName.slice(1)}Record`,
         path,
-        seen,
+        depth + 1,
+        state,
       );
     }
 
@@ -104,14 +127,41 @@ function inferArrayType(
   arr: unknown[],
   fieldName: string,
   path: string,
-  seen: WeakSet<object>,
+  depth: number,
+  state: InferenceState,
 ): AvroSchemaType {
+  enforceInferenceLimits(path, depth, state);
+
   if (arr.length === 0) {
     // Empty array — default to array of strings.
     return { type: 'array', items: 'string' };
   }
 
   // Infer from the first element.
-  const items = inferType(arr[0], `${fieldName}Item`, `${path}[0]`, seen);
+  const items = inferType(arr[0], `${fieldName}Item`, `${path}[0]`, depth + 1, state);
   return { type: 'array', items };
+}
+
+function enforceInferenceLimits(
+  path: string,
+  depth: number,
+  state: InferenceState,
+): void {
+  state.nodesVisited++;
+
+  if (depth > state.maxDepth) {
+    throw new InferenceError(
+      path,
+      `Maximum inference depth exceeded (${state.maxDepth}). ` +
+        'Use precompiled schemas from avro-gen for large payloads.',
+    );
+  }
+
+  if (state.nodesVisited > state.maxNodes) {
+    throw new InferenceError(
+      path,
+      `Maximum inference node limit exceeded (${state.maxNodes}). ` +
+        'Use precompiled schemas from avro-gen or infer in a worker thread.',
+    );
+  }
 }

@@ -92,4 +92,19 @@ describe('Schema Inference', () => {
       InferenceError,
     );
   });
+
+  it('enforces maximum inference depth', () => {
+    const deep = { level1: { level2: { level3: { value: 'x' } } } };
+
+    expect(() => inferSchema(deep, 'Deep', { maxDepth: 2 })).toThrow(InferenceError);
+  });
+
+  it('enforces maximum inference nodes', () => {
+    const wide: Record<string, unknown> = {};
+    for (let i = 0; i < 20; i++) {
+      wide[`k_${i}`] = i;
+    }
+
+    expect(() => inferSchema(wide, 'Wide', { maxNodes: 5 })).toThrow(InferenceError);
+  });
 });

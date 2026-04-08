@@ -21,6 +21,8 @@ export type {
   SchemaFingerprint,
   WirePayload,
   OfflineEntry,
+  InferenceConfig,
+  NetworkListener,
 } from './types.js';
 
 // Errors (all exported so consumers can catch specific subclasses)
@@ -40,7 +42,20 @@ export { inferSchema } from './schema/inference.js';
 export { fingerprint, fingerprintToHex } from './schema/fingerprint.js';
 
 // Codec (advanced)
-export { encode, decode, frameForWire, parseWireFrame } from './codec/index.js';
+export {
+  encode,
+  decode,
+  frameForWire,
+  parseWireFrame,
+  resolveToReaderSchema,
+} from './codec/index.js';
+
+// Network strategy
+export {
+  BrowserNetworkListener,
+  NodeNetworkListener,
+  createDefaultNetworkListener,
+} from './network/index.js';
 
 // Transport (advanced)
 export { AvroSocket } from './transport/websocket.js';

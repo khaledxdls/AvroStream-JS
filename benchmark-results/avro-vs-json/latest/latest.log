@@ -1,0 +1,38 @@
+=== AvroStream Real Benchmark: Avro vs JSON ===
+node         : v24.14.0
+platform     : linux x64
+warmupRounds : 1
+rounds       : 2
+scenarios    : 5,000, 20,000, 50,000
+
+=== CheckoutEvent workload (5,000 records) ===
+encode  avro=8.21ms (609,380 ops/s) json=11.23ms (445,345 ops/s) avro-vs-json=1.37x
+decode  avro=6.54ms (764,417 ops/s) json=7.31ms (683,645 ops/s) avro-vs-json=1.12x
+sizes   avro=706.12 KB json=1.70 MB reduction=59.54%
+stdev   avro-enc=0.55ms json-enc=0.03ms avro-dec=1.05ms json-dec=0.10ms
+p95     avro-enc=9.30ms json-enc=11.28ms avro-dec=8.65ms json-dec=7.51ms
+
+=== CheckoutEvent workload (20,000 records) ===
+encode  avro=22.93ms (872,266 ops/s) json=40.10ms (498,771 ops/s) avro-vs-json=1.75x
+decode  avro=26.95ms (742,171 ops/s) json=29.30ms (682,656 ops/s) avro-vs-json=1.09x
+sizes   avro=2.76 MB json=6.82 MB reduction=59.54%
+stdev   avro-enc=4.42ms json-enc=6.21ms avro-dec=0.72ms json-dec=0.77ms
+p95     avro-enc=31.78ms json-enc=52.52ms avro-dec=28.38ms json-dec=30.84ms
+
+=== CheckoutEvent workload (50,000 records) ===
+encode  avro=55.82ms (895,674 ops/s) json=99.50ms (502,530 ops/s) avro-vs-json=1.78x
+decode  avro=60.17ms (831,043 ops/s) json=74.92ms (667,412 ops/s) avro-vs-json=1.25x
+sizes   avro=6.90 MB json=17.05 MB reduction=59.54%
+stdev   avro-enc=7.89ms json-enc=14.03ms avro-dec=11.75ms json-dec=3.34ms
+p95     avro-enc=71.61ms json-enc=127.56ms avro-dec=83.67ms json-dec=81.60ms
+
+=== Summary ===
+5,000 recs: size 59.54% smaller (avro vs json), encode 26.92%, decode 10.57% (positive means Avro faster)
+20,000 recs: size 59.54% smaller (avro vs json), encode 42.82%, decode 8.02% (positive means Avro faster)
+50,000 recs: size 59.54% smaller (avro vs json), encode 43.89%, decode 19.69% (positive means Avro faster)
+
+=== Artifacts ===
+json    : /home/khaleddelassi/AvroStream JS/benchmark-results/avro-vs-json/latest/latest.json
+csv     : /home/khaleddelassi/AvroStream JS/benchmark-results/avro-vs-json/latest/latest.csv
+markdown: /home/khaleddelassi/AvroStream JS/benchmark-results/avro-vs-json/latest/latest.md
+log     : /home/khaleddelassi/AvroStream JS/benchmark-results/avro-vs-json/latest/latest.log

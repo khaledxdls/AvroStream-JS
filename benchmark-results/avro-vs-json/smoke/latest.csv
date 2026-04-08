@@ -1,0 +1,2 @@
+scenario,records,avro_encode_median_ms,json_encode_median_ms,avro_decode_median_ms,json_decode_median_ms,avro_encode_ops_s,json_encode_ops_s,avro_decode_ops_s,json_decode_ops_s,avro_bytes,json_bytes,size_reduction_percent,encode_avro_faster_percent,decode_avro_faster_percent
+CheckoutEvent workload,1000,1.6996419999999972,1.9247249999999951,2.625107,1.5028190000000023,588359.1956423774,519554.7415864617,380936.85324064887,665416.1279568587,144598,357429,59.54497256797854,11.694293990050449,-74.67885354124454

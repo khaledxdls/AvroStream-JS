@@ -158,4 +158,29 @@ describe('FetchTransport', () => {
     const [, init] = fetchMock.mock.calls[0]!;
     expect((init as RequestInit).body).toBeUndefined();
   });
+
+  it('does not mutate caller request options', async () => {
+    const fetchMock = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+
+    const { transport } = createTransport(fetchMock);
+
+    const options = {
+      method: 'POST',
+      headers: { 'X-Custom': 'true' },
+      body: { name: 'Alice', role: 'Admin' },
+    };
+
+    await transport.fetch('/users', options);
+
+    expect(options).toEqual({
+      method: 'POST',
+      headers: { 'X-Custom': 'true' },
+      body: { name: 'Alice', role: 'Admin' },
+    });
+  });
 });

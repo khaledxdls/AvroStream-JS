@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { encode, decode, frameForWire, parseWireFrame } from '../codec/index.js';
+import {
+  encode,
+  decode,
+  frameForWire,
+  parseWireFrame,
+  resolveToReaderSchema,
+} from '../codec/index.js';
 import { SchemaRegistry } from '../schema/registry.js';
 import { AvroCircularReferenceError, CodecError } from '../errors/index.js';
 import type { AvroRecordSchema } from '../types.js';
@@ -72,6 +78,46 @@ describe('Codec', () => {
       const framed = frameForWire({ fingerprint: fp, data: new Uint8Array(0) });
       const parsed = parseWireFrame(framed);
       expect(parsed.data.length).toBe(0);
+    });
+  });
+
+  describe('schema resolution', () => {
+    it('resolves writer payload into reader schema', () => {
+      const writerSchema: AvroRecordSchema = {
+        type: 'record',
+        name: 'User',
+        fields: [
+          { name: 'name', type: 'string' },
+          { name: 'age', type: 'int' },
+        ],
+      };
+
+      const readerSchema: AvroRecordSchema = {
+        type: 'record',
+        name: 'User',
+        fields: [
+          { name: 'name', type: 'string' },
+          { name: 'age', type: 'int' },
+          { name: 'email', type: ['null', 'string'], default: null },
+        ],
+      };
+
+      const registry = new SchemaRegistry();
+      const writerFp = registry.register(writerSchema, '/users');
+      const readerFp = registry.register(readerSchema, '/users');
+
+      const writerEntry = registry.getByFingerprint(writerFp);
+      const readerEntry = registry.getByFingerprint(readerFp);
+
+      const writerBytes = encode(writerEntry, { name: 'Alice', age: 30 });
+      const resolvedBytes = resolveToReaderSchema(writerEntry, readerEntry, writerBytes);
+      const decodedReader = decode(readerEntry, resolvedBytes);
+
+      expect(decodedReader).toEqual({
+        name: 'Alice',
+        age: 30,
+        email: null,
+      });
     });
   });
 });

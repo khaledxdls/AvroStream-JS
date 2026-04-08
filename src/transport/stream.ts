@@ -55,27 +55,29 @@ export class AvroStream implements AsyncIterable<Record<string, unknown>> {
     }
 
     const reader = body.getReader();
-    let buffer = new Uint8Array(0);
+    const queue = new ByteQueue();
 
     try {
       for (;;) {
         const { done, value } = await reader.read();
 
         if (value) {
-          buffer = concatBuffers(buffer, new Uint8Array(value));
+          queue.push(value);
         }
 
         // Try to drain complete records from the buffer.
-        while (buffer.length >= 4) {
-          const view = new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-          const recordLen = view.getUint32(0, false);
+        while (queue.length >= 4) {
+          const recordLen = queue.peekUint32BE();
+          if (recordLen === null) {
+            break;
+          }
 
-          if (buffer.length < 4 + recordLen) {
+          if (queue.length < 4 + recordLen) {
             break; // Need more data.
           }
 
-          const recordData = buffer.slice(4, 4 + recordLen);
-          buffer = buffer.slice(4 + recordLen);
+          queue.shift(4);
+          const recordData = queue.shift(recordLen);
 
           const decoded = decode(this._entry, recordData);
 
@@ -94,9 +96,9 @@ export class AvroStream implements AsyncIterable<Record<string, unknown>> {
       }
 
       // If there's leftover data, it's a protocol violation.
-      if (buffer.length > 0) {
+      if (queue.length > 0) {
         throw new CodecError(
-          `Stream ended with ${buffer.length} trailing bytes — data may be corrupt.`,
+          `Stream ended with ${queue.length} trailing bytes — data may be corrupt.`,
         );
       }
     } finally {
@@ -133,20 +135,20 @@ export async function createAvroStream(
 
   // Read the 8-byte schema fingerprint from the start of the stream.
   const reader = response.body.getReader();
-  let headerBuf = new Uint8Array(0);
+  const headerQueue = new ByteQueue();
 
-  while (headerBuf.length < 8) {
+  while (headerQueue.length < 8) {
     const { done, value } = await reader.read();
     if (done) {
       throw new CodecError('Stream ended before schema fingerprint was received.');
     }
     if (value) {
-      headerBuf = concatBuffers(headerBuf, new Uint8Array(value));
+      headerQueue.push(value);
     }
   }
 
-  const fp = headerBuf.slice(0, 8);
-  const remainder = headerBuf.slice(8);
+  const fp = headerQueue.shift(8);
+  const remainder = headerQueue.shift(headerQueue.length);
   const entry = config.registry.getByFingerprint(fp);
 
   // Reconstruct a ReadableStream that starts with the remainder bytes.
@@ -180,9 +182,98 @@ export async function createAvroStream(
 
 // ── Utility ──────────────────────────────────────────────────────────
 
-function concatBuffers(a: Uint8Array<ArrayBuffer>, b: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
-  const result = new Uint8Array(a.length + b.length);
-  result.set(a, 0);
-  result.set(b, a.length);
-  return result;
+class ByteQueue {
+  private _chunks: Uint8Array[] = [];
+  private _offset = 0;
+  private _length = 0;
+
+  get length(): number {
+    return this._length;
+  }
+
+  push(chunk: Uint8Array): void {
+    if (chunk.length === 0) return;
+    this._chunks.push(chunk);
+    this._length += chunk.length;
+  }
+
+  peekUint32BE(): number | null {
+    if (this._length < 4) {
+      return null;
+    }
+
+    const bytes = this._peek(4);
+    const view = new DataView(bytes.buffer, bytes.byteOffset, 4);
+    return view.getUint32(0, false);
+  }
+
+  shift(size: number): Uint8Array {
+    if (size < 0 || size > this._length) {
+      throw new CodecError(`Cannot consume ${size} bytes from stream buffer of length ${this._length}.`);
+    }
+
+    const out = new Uint8Array(size);
+    let outOffset = 0;
+    let remaining = size;
+
+    while (remaining > 0) {
+      const chunk = this._chunks[0];
+      if (!chunk) {
+        throw new CodecError('Unexpected empty stream buffer state.');
+      }
+
+      const availableInChunk = chunk.length - this._offset;
+      const take = Math.min(remaining, availableInChunk);
+
+      out.set(chunk.subarray(this._offset, this._offset + take), outOffset);
+
+      this._offset += take;
+      outOffset += take;
+      remaining -= take;
+      this._length -= take;
+
+      if (this._offset >= chunk.length) {
+        this._chunks.shift();
+        this._offset = 0;
+      }
+    }
+
+    return out;
+  }
+
+  private _peek(size: number): Uint8Array {
+    if (this._chunks.length === 0) {
+      return new Uint8Array(0);
+    }
+
+    const first = this._chunks[0]!;
+    if (first.length - this._offset >= size) {
+      return first.subarray(this._offset, this._offset + size);
+    }
+
+    const out = new Uint8Array(size);
+    let outOffset = 0;
+    let remaining = size;
+    let localOffset = this._offset;
+
+    for (const chunk of this._chunks) {
+      const available = chunk.length - localOffset;
+      if (available <= 0) {
+        localOffset = 0;
+        continue;
+      }
+
+      const take = Math.min(remaining, available);
+      out.set(chunk.subarray(localOffset, localOffset + take), outOffset);
+      outOffset += take;
+      remaining -= take;
+      localOffset = 0;
+
+      if (remaining === 0) {
+        break;
+      }
+    }
+
+    return out;
+  }
 }

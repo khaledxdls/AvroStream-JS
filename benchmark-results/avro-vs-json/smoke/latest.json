@@ -1,0 +1,103 @@
+{
+  "metadata": {
+    "generatedAt": "2026-04-08T08:16:02.667Z",
+    "node": "v24.14.0",
+    "platform": "linux x64",
+    "warmupRounds": 1,
+    "rounds": 2,
+    "scenarios": [
+      1000
+    ],
+    "gcEnabled": true
+  },
+  "summary": [
+    {
+      "scenario": "CheckoutEvent workload",
+      "records": 1000,
+      "avro_encode_median_ms": 1.6996419999999972,
+      "json_encode_median_ms": 1.9247249999999951,
+      "avro_decode_median_ms": 2.625107,
+      "json_decode_median_ms": 1.5028190000000023,
+      "avro_encode_ops_s": 588359.1956423774,
+      "json_encode_ops_s": 519554.7415864617,
+      "avro_decode_ops_s": 380936.85324064887,
+      "json_decode_ops_s": 665416.1279568587,
+      "avro_bytes": 144598,
+      "json_bytes": 357429,
+      "size_reduction_percent": 59.54497256797854,
+      "encode_avro_faster_percent": 11.694293990050449,
+      "decode_avro_faster_percent": -74.67885354124454
+    }
+  ],
+  "results": [
+    {
+      "name": "CheckoutEvent workload",
+      "count": 1000,
+      "avroBytes": 144598,
+      "jsonBytes": 357429,
+      "reductionPercent": 59.545,
+      "operations": {
+        "avroEncode": {
+          "opsPerSec": 588359.1956423774,
+          "summary": {
+            "min": 1.6996419999999972,
+            "median": 1.6996419999999972,
+            "p95": 2.209226000000001,
+            "max": 2.209226000000001,
+            "mean": 1.9544339999999991,
+            "stddev": 0.2547920000000019
+          },
+          "samplesMs": [
+            1.6996419999999972,
+            2.209226000000001
+          ]
+        },
+        "jsonEncode": {
+          "opsPerSec": 519554.7415864617,
+          "summary": {
+            "min": 1.9247249999999951,
+            "median": 1.9247249999999951,
+            "p95": 3.872727999999995,
+            "max": 3.872727999999995,
+            "mean": 2.898726499999995,
+            "stddev": 0.9740015
+          },
+          "samplesMs": [
+            3.872727999999995,
+            1.9247249999999951
+          ]
+        },
+        "avroDecode": {
+          "opsPerSec": 380936.85324064887,
+          "summary": {
+            "min": 2.625107,
+            "median": 2.625107,
+            "p95": 2.8063690000000037,
+            "max": 2.8063690000000037,
+            "mean": 2.7157380000000018,
+            "stddev": 0.0906310000000019
+          },
+          "samplesMs": [
+            2.625107,
+            2.8063690000000037
+          ]
+        },
+        "jsonDecode": {
+          "opsPerSec": 665416.1279568587,
+          "summary": {
+            "min": 1.5028190000000023,
+            "median": 1.5028190000000023,
+            "p95": 1.7238149999999877,
+            "max": 1.7238149999999877,
+            "mean": 1.613316999999995,
+            "stddev": 0.11049799999999266
+          },
+          "samplesMs": [
+            1.7238149999999877,
+            1.5028190000000023
+          ]
+        }
+      }
+    }
+  ]
+}

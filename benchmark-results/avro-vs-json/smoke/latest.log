@@ -1,0 +1,16 @@
+=== AvroStream Real Benchmark: Avro vs JSON ===
+node         : v24.14.0
+platform     : linux x64
+warmupRounds : 1
+rounds       : 2
+scenarios    : 1,000
+
+=== CheckoutEvent workload (1,000 records) ===
+encode  avro=1.70ms (588,359 ops/s) json=1.92ms (519,555 ops/s) avro-vs-json=1.13x
+decode  avro=2.63ms (380,937 ops/s) json=1.50ms (665,416 ops/s) avro-vs-json=0.57x
+sizes   avro=141.21 KB json=349.05 KB reduction=59.54%
+stdev   avro-enc=0.25ms json-enc=0.97ms avro-dec=0.09ms json-dec=0.11ms
+p95     avro-enc=2.21ms json-enc=3.87ms avro-dec=2.81ms json-dec=1.72ms
+
+=== Summary ===
+1,000 recs: size 59.54% smaller (avro vs json), encode 11.69%, decode -74.68% (positive means Avro faster)

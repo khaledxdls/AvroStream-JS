@@ -17,9 +17,11 @@ import { AvroSocket } from './transport/websocket.js';
 import { createAvroStream } from './transport/stream.js';
 import type { AvroStream } from './transport/stream.js';
 import { DebugLogger } from './debug/index.js';
-import { OfflineQueue, isOnline } from './offline/index.js';
-import { encode, frameForWire } from './codec/index.js';
+import { OfflineQueue } from './offline/index.js';
+import { encode, frameForWire, resolveToReaderSchema } from './codec/index.js';
 import { fingerprintToHex } from './schema/fingerprint.js';
+import { createDefaultNetworkListener } from './network/index.js';
+import type { NetworkListener } from './types.js';
 
 export class AvroClient {
   private readonly _config: Required<
@@ -30,8 +32,13 @@ export class AvroClient {
   private readonly _debugLogger: DebugLogger;
   private readonly _fetchTransport: FetchTransport;
   private readonly _offlineQueue: OfflineQueue | null;
+  private readonly _networkListener: NetworkListener;
 
-  private _onlineListener: (() => void) | null = null;
+  private readonly _inferenceConfig: Required<
+    Pick<NonNullable<AvroClientConfig['inference']>, 'maxDepth' | 'maxNodes'>
+  >;
+
+  private _onlineUnsubscribe: (() => void) | null = null;
 
   constructor(config: AvroClientConfig) {
     this._config = {
@@ -40,8 +47,14 @@ export class AvroClient {
       autoInfer: config.autoInfer ?? true,
       offline: config.offline ?? false,
     };
+    this._inferenceConfig = {
+      maxDepth: config.inference?.maxDepth ?? 32,
+      maxNodes: config.inference?.maxNodes ?? 50_000,
+    };
 
     this._fetchImpl = config.fetch ?? globalThis.fetch.bind(globalThis);
+    this._networkListener =
+      config.networkListener ?? createDefaultNetworkListener(this._config.endpoint);
     this._registry = new SchemaRegistry();
     this._debugLogger = new DebugLogger(this._config.debug);
 
@@ -58,6 +71,7 @@ export class AvroClient {
       debug: this._debugLogger,
       autoInfer: this._config.autoInfer,
       fetchImpl: this._fetchImpl,
+      inference: this._inferenceConfig,
     });
 
     // Offline support
@@ -79,13 +93,15 @@ export class AvroClient {
     path: string,
     options?: AvroFetchOptions,
   ): Promise<Record<string, unknown>> {
+    const requestOptions = cloneFetchOptions(options);
+
     // If offline and queue is enabled, queue the request.
-    if (this._offlineQueue && !isOnline() && options?.body) {
-      await this._enqueueOffline(path, options);
+    if (this._offlineQueue && !this._networkListener.isOnline() && requestOptions?.body) {
+      await this._enqueueOffline(path, requestOptions);
       return { __queued: true, __path: path };
     }
 
-    return this._fetchTransport.fetch(path, options);
+    return this._fetchTransport.fetch(path, requestOptions);
   }
 
   /**
@@ -144,10 +160,9 @@ export class AvroClient {
    * Tear down the client (remove event listeners, close DB).
    */
   destroy(): void {
-    if (this._onlineListener && typeof window !== 'undefined') {
-      window.removeEventListener('online', this._onlineListener);
-      this._onlineListener = null;
-    }
+    this._onlineUnsubscribe?.();
+    this._onlineUnsubscribe = null;
+    this._networkListener.destroy?.();
   }
 
   // ── Private ────────────────────────────────────────────────────────
@@ -160,8 +175,22 @@ export class AvroClient {
     this._offlineQueue.onFlush(async (entry) => {
       try {
         const wireBody = new Uint8Array(8 + entry.data.length);
-        wireBody.set(entry.fingerprint, 0);
-        wireBody.set(entry.data, 8);
+        const latest = this._registry.getByKey(entry.path);
+
+        if (latest && !buffersEqual(latest.fingerprint, entry.fingerprint)) {
+          try {
+            const writer = this._registry.getByFingerprint(entry.fingerprint);
+            const reencoded = resolveToReaderSchema(writer, latest, entry.data);
+            wireBody.set(latest.fingerprint, 0);
+            wireBody.set(reencoded, 8);
+          } catch {
+            wireBody.set(entry.fingerprint, 0);
+            wireBody.set(entry.data, 8);
+          }
+        } else {
+          wireBody.set(entry.fingerprint, 0);
+          wireBody.set(entry.data, 8);
+        }
 
         const response = await this._fetchImpl(
           `${this._config.endpoint}${entry.path}`,
@@ -178,15 +207,12 @@ export class AvroClient {
     });
 
     // Flush when coming back online.
-    if (typeof window !== 'undefined') {
-      this._onlineListener = () => {
-        void this._offlineQueue?.flush();
-      };
-      window.addEventListener('online', this._onlineListener);
-    }
+    this._onlineUnsubscribe = this._networkListener.onOnline(() => {
+      void this._offlineQueue?.flush();
+    });
 
     // Try an immediate flush in case we're online with pending entries.
-    if (isOnline()) {
+    if (this._networkListener.isOnline()) {
       void this._offlineQueue.flush();
     }
   }
@@ -204,7 +230,7 @@ export class AvroClient {
     const { inferSchema } = await import('./schema/inference.js');
     let resolved = entry;
     if (!resolved) {
-      const schema = inferSchema(options.body);
+      const schema = inferSchema(options.body, undefined, this._inferenceConfig);
       const fp = this._registry.register(schema, path);
       resolved = this._registry.getByFingerprint(fp);
     }
@@ -223,4 +249,27 @@ export class AvroClient {
       binary,
     );
   }
+}
+
+function cloneFetchOptions(options?: AvroFetchOptions): AvroFetchOptions | undefined {
+  if (!options) return undefined;
+
+  return {
+    method: options.method,
+    signal: options.signal,
+    body: options.body
+      ? (structuredClone(options.body) as Record<string, unknown>)
+      : undefined,
+    headers: options.headers ? { ...options.headers } : undefined,
+  };
+}
+
+function buffersEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  for (let index = 0; index < a.length; index++) {
+    if (a[index] !== b[index]) {
+      return false;
+    }
+  }
+  return true;
 }
