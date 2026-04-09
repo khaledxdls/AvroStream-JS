@@ -12,7 +12,7 @@ import type { AvroFetchOptions, AvroRecordSchema } from '../types.js';
 import type { SchemaRegistry } from '../schema/registry.js';
 import type { DebugLogger } from '../debug/index.js';
 import { inferSchema } from '../schema/inference.js';
-import { encode, decode, frameForWire, parseWireFrame } from '../codec/index.js';
+import { encode, decode, frameForWire, parseWireFrame, WIRE_VERSION_SCHEMA } from '../codec/index.js';
 import { fingerprintToHex } from '../schema/fingerprint.js';
 import { SchemaNegotiationError, CodecError } from '../errors/index.js';
 
@@ -129,16 +129,17 @@ export class FetchTransport {
     const binary = encode(entry, options.body);
     const schemaJson = JSON.stringify(entry.schema);
 
-    // Build the retry payload: [schema-length (4 bytes)][schema JSON][fingerprint][data]
+    // Build the retry payload: [version (1 byte)][schema-length (4 bytes)][schema JSON][fingerprint][data]
     const schemaBytes = new TextEncoder().encode(schemaJson);
     const retryPayload = new Uint8Array(
-      4 + schemaBytes.length + 8 + binary.length,
+      1 + 4 + schemaBytes.length + 8 + binary.length,
     );
+    retryPayload[0] = WIRE_VERSION_SCHEMA;
     const view = new DataView(retryPayload.buffer);
-    view.setUint32(0, schemaBytes.length, false);
-    retryPayload.set(schemaBytes, 4);
-    retryPayload.set(fp, 4 + schemaBytes.length);
-    retryPayload.set(binary, 4 + schemaBytes.length + 8);
+    view.setUint32(1, schemaBytes.length, false);
+    retryPayload.set(schemaBytes, 5);
+    retryPayload.set(fp, 5 + schemaBytes.length);
+    retryPayload.set(binary, 5 + schemaBytes.length + 8);
 
     const retryHeaders = {
       ...baseHeaders,
@@ -184,8 +185,6 @@ function cloneFetchOptions(options: AvroFetchOptions): AvroFetchOptions {
     method: options.method,
     signal: options.signal,
     headers: options.headers ? { ...options.headers } : undefined,
-    body: options.body
-      ? (structuredClone(options.body) as Record<string, unknown>)
-      : undefined,
+    body: options.body,   // no structuredClone — avsc never mutates the input
   };
 }

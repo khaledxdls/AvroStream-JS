@@ -62,7 +62,7 @@ describe('Codec', () => {
       const data = new Uint8Array([10, 20, 30]);
       const framed = frameForWire({ fingerprint: fp, data });
 
-      expect(framed.length).toBe(11); // 8 + 3
+      expect(framed.length).toBe(12); // 1 (version) + 8 (fp) + 3 (data)
 
       const parsed = parseWireFrame(framed);
       expect(Array.from(parsed.fingerprint)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);

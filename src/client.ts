@@ -10,6 +10,7 @@ import type {
   AvroClientConfig,
   AvroFetchOptions,
   AvroRecordSchema,
+  ConnectSocketOptions,
 } from './types.js';
 import { SchemaRegistry } from './schema/index.js';
 import { FetchTransport } from './transport/fetch.js';
@@ -18,7 +19,7 @@ import { createAvroStream } from './transport/stream.js';
 import type { AvroStream } from './transport/stream.js';
 import { DebugLogger } from './debug/index.js';
 import { OfflineQueue } from './offline/index.js';
-import { encode, frameForWire, resolveToReaderSchema } from './codec/index.js';
+import { encode, frameForWire, resolveToReaderSchema, WIRE_VERSION_STANDARD } from './codec/index.js';
 import { fingerprintToHex } from './schema/fingerprint.js';
 import { createDefaultNetworkListener } from './network/index.js';
 import type { NetworkListener } from './types.js';
@@ -56,7 +57,7 @@ export class AvroClient {
     this._networkListener =
       config.networkListener ?? createDefaultNetworkListener(this._config.endpoint);
     this._registry = new SchemaRegistry();
-    this._debugLogger = new DebugLogger(this._config.debug);
+    this._debugLogger = new DebugLogger(this._config.debug, config.onMetrics);
 
     // Pre-register any schemas from a manifest.
     if (config.schemas) {
@@ -109,14 +110,17 @@ export class AvroClient {
    */
   connectSocket(
     url: string,
-    protocols?: string | string[],
+    options?: ConnectSocketOptions,
   ): AvroSocket {
     const socket = new AvroSocket({
       url,
       registry: this._registry,
       debug: this._debugLogger,
       autoInfer: this._config.autoInfer,
-      protocols,
+      protocols: options?.protocols,
+      inference: this._inferenceConfig,
+      reconnect: options?.reconnect,
+      reconnectOptions: options?.reconnectOptions,
     });
     socket.connect();
     return socket;
@@ -174,22 +178,23 @@ export class AvroClient {
 
     this._offlineQueue.onFlush(async (entry) => {
       try {
-        const wireBody = new Uint8Array(8 + entry.data.length);
+        const wireBody = new Uint8Array(1 + 8 + entry.data.length);
+        wireBody[0] = WIRE_VERSION_STANDARD;
         const latest = this._registry.getByKey(entry.path);
 
         if (latest && !buffersEqual(latest.fingerprint, entry.fingerprint)) {
           try {
             const writer = this._registry.getByFingerprint(entry.fingerprint);
             const reencoded = resolveToReaderSchema(writer, latest, entry.data);
-            wireBody.set(latest.fingerprint, 0);
-            wireBody.set(reencoded, 8);
+            wireBody.set(latest.fingerprint, 1);
+            wireBody.set(reencoded, 9);
           } catch {
-            wireBody.set(entry.fingerprint, 0);
-            wireBody.set(entry.data, 8);
+            wireBody.set(entry.fingerprint, 1);
+            wireBody.set(entry.data, 9);
           }
         } else {
-          wireBody.set(entry.fingerprint, 0);
-          wireBody.set(entry.data, 8);
+          wireBody.set(entry.fingerprint, 1);
+          wireBody.set(entry.data, 9);
         }
 
         const response = await this._fetchImpl(
@@ -257,9 +262,7 @@ function cloneFetchOptions(options?: AvroFetchOptions): AvroFetchOptions | undef
   return {
     method: options.method,
     signal: options.signal,
-    body: options.body
-      ? (structuredClone(options.body) as Record<string, unknown>)
-      : undefined,
+    body: options.body,   // no structuredClone — avsc never mutates the input
     headers: options.headers ? { ...options.headers } : undefined,
   };
 }

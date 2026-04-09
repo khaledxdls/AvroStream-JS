@@ -48,6 +48,25 @@ export type AvroUnionSchema = readonly AvroSchemaType[];
 /** 8-byte CRC-64 fingerprint used to identify schemas on the wire. */
 export type SchemaFingerprint = Uint8Array;
 
+/** Reconnection behaviour for AvroSocket. */
+export interface ReconnectOptions {
+  /** Maximum number of reconnect attempts. -1 means infinite. Default: 10. */
+  readonly maxAttempts?: number;
+  /** Initial delay between reconnect attempts in milliseconds. Default: 500. */
+  readonly initialDelayMs?: number;
+  /** Maximum delay between reconnect attempts in milliseconds. Default: 30000. */
+  readonly maxDelayMs?: number;
+  /** Add random jitter to the reconnect delay. Default: true. */
+  readonly jitter?: boolean;
+}
+
+/** Options for `AvroClient.connectSocket()`. */
+export interface ConnectSocketOptions {
+  readonly protocols?: string | string[];
+  readonly reconnect?: boolean;
+  readonly reconnectOptions?: ReconnectOptions;
+}
+
 /** Configuration for the AvroClient. */
 export interface AvroClientConfig {
   /** Base URL for all HTTP requests. */
@@ -84,6 +103,12 @@ export interface AvroClientConfig {
    * Runtime schema inference safety limits.
    */
   readonly inference?: InferenceConfig;
+
+  /**
+   * Optional callback invoked after every encode/decode with byte-savings metrics.
+   * Fires regardless of the `debug` flag — useful for telemetry pipelines.
+   */
+  readonly onMetrics?: (metrics: import('./debug/index.js').DebugMetrics) => void;
 }
 
 /** Options for a single fetch call, mirroring RequestInit. */

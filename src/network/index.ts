@@ -52,6 +52,8 @@ export class NodeNetworkListener implements NetworkListener {
           ? 443
           : 80;
 
+    // Kick off an immediate probe so isOnline() reflects real state before first poll interval.
+    void this._probeConnectivity();
   }
 
   isOnline(): boolean {

@@ -47,11 +47,16 @@ export function fingerprint(schema: object): Uint8Array {
   return result;
 }
 
+const HEX_CHARS = '0123456789abcdef';
+
 /**
  * Convert a fingerprint Uint8Array to a hex string for display/logging.
  */
 export function fingerprintToHex(fp: Uint8Array): string {
-  return Array.from(fp)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+  let hex = '';
+  for (let i = 0; i < fp.length; i++) {
+    const b = fp[i]!;
+    hex += HEX_CHARS[b >> 4]! + HEX_CHARS[b & 0xf]!;
+  }
+  return hex;
 }

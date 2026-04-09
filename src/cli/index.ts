@@ -158,13 +158,38 @@ function collectTsFiles(input: string): string[] {
   return files;
 }
 
-// ── Interface Extraction (Regex-based, no TS compiler dependency) ────
+// ── Interface Extraction (balanced-brace, no TS compiler dependency) ─
 
 /**
- * Simple regex-based extractor for exported interfaces.
- * This is intentionally kept lightweight — it handles the common case of
- * flat interfaces with primitive fields.  For complex generics or utility
- * types, users should provide schemas manually.
+ * Extract an interface body using a balanced-brace scan.
+ * Returns the body text (between the outer braces) and the position after the closing brace.
+ */
+function extractInterfaceBody(
+  source: string,
+  searchFrom: number,
+): { body: string; end: number } | null {
+  let i = searchFrom;
+  while (i < source.length && source[i] !== '{') i++;
+  if (i >= source.length) return null;
+
+  let depth = 0;
+  let start = -1;
+  for (; i < source.length; i++) {
+    if (source[i] === '{') {
+      depth++;
+      if (depth === 1) start = i + 1;
+    } else if (source[i] === '}') {
+      depth--;
+      if (depth === 0) return { body: source.slice(start, i), end: i + 1 };
+    }
+  }
+  return null;
+}
+
+/**
+ * Extractor for exported interfaces.
+ * Uses balanced-brace scanning so nested-object field types don't truncate the body.
+ * For complex generics or utility types, users should provide schemas manually.
  */
 function extractInterfaces(
   source: string,
@@ -173,15 +198,16 @@ function extractInterfaces(
 ): SchemaManifest {
   const manifest: SchemaManifest = {};
 
-  // Match: export interface Foo { ... }
-  const interfaceRegex = /export\s+interface\s+(\w+)\s*\{([^}]+)\}/g;
+  // Find each `export interface Name` occurrence, then extract the body.
+  const headerRegex = /export\s+interface\s+(\w+)\s*/g;
 
   let match: RegExpExecArray | null;
-  while ((match = interfaceRegex.exec(source)) !== null) {
+  while ((match = headerRegex.exec(source)) !== null) {
     const name = match[1]!;
-    const body = match[2]!;
-    const fields = parseFields(body);
+    const extracted = extractInterfaceBody(source, match.index + match[0].length);
+    if (!extracted) continue;
 
+    const fields = parseFields(extracted.body);
     const key = `${relative(resolve(basePath), filePath).replace(/\.ts$/, '')}:${name}`;
 
     manifest[key] = {
@@ -189,6 +215,9 @@ function extractInterfaces(
       name,
       fields,
     };
+
+    // Advance past the interface body to avoid re-scanning inside it.
+    headerRegex.lastIndex = extracted.end;
   }
 
   return manifest;
@@ -197,6 +226,7 @@ function extractInterfaces(
 function parseFields(body: string): AvroField[] {
   const fields: AvroField[] = [];
   // Match: fieldName: Type; or fieldName?: Type;
+  // Skip lines that contain a '{' in the type — inline object types are mapped to 'string'.
   const fieldRegex = /(\w+)(\?)?\s*:\s*([^;]+)/g;
 
   let match: RegExpExecArray | null;
@@ -204,7 +234,9 @@ function parseFields(body: string): AvroField[] {
     const name = match[1]!;
     const optional = match[2] === '?';
     const tsType = match[3]!.trim();
-    const avroType = mapTsTypeToAvro(tsType);
+
+    // Inline object types (contain '{') are out of scope — map to 'string'.
+    const avroType = tsType.includes('{') ? 'string' : mapTsTypeToAvro(tsType);
 
     if (optional) {
       fields.push({

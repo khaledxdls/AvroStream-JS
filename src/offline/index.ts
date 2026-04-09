@@ -95,7 +95,8 @@ export class OfflineQueue {
   }
 
   /**
-   * Flush all queued entries in FIFO order.
+   * Flush queued entries in FIFO order, one at a time.
+   * Uses a cursor-based approach so memory stays O(1) regardless of queue depth.
    * Failed entries remain in the queue.
    */
   async flush(): Promise<number> {
@@ -105,16 +106,13 @@ export class OfflineQueue {
     let flushed = 0;
 
     try {
-      const entries = await this._getAll();
-
-      for (const entry of entries) {
+      for (;;) {
+        const entry = await this._peekFirst();
+        if (!entry) break;
         const ok = await this._flushCallback(entry);
-        if (ok) {
-          await this._delete(entry.id);
-          flushed++;
-        } else {
-          break; // Stop on first failure to maintain ordering.
-        }
+        if (!ok) break; // Stop on first failure to maintain ordering.
+        await this._delete(entry.id);
+        flushed++;
       }
     } finally {
       this._flushing = false;
@@ -157,14 +155,13 @@ export class OfflineQueue {
 
   // ── Private ────────────────────────────────────────────────────────
 
-  private async _getAll(): Promise<OfflineEntry[]> {
+  private _peekFirst(): Promise<OfflineEntry | null> {
     return new Promise((resolve, reject) => {
       const tx = this._db!.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
-      const request = store.getAll();
-
-      request.onsuccess = () => { resolve(request.result as OfflineEntry[]); };
-      request.onerror = () => { reject(new CodecError('getAll failed')); };
+      const req = store.openCursor();
+      req.onsuccess = () => resolve(req.result ? (req.result.value as OfflineEntry) : null);
+      req.onerror = () => reject(new CodecError('Queue read failed'));
     });
   }
 

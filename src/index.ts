@@ -23,6 +23,8 @@ export type {
   OfflineEntry,
   InferenceConfig,
   NetworkListener,
+  ReconnectOptions,
+  ConnectSocketOptions,
 } from './types.js';
 
 // Errors (all exported so consumers can catch specific subclasses)
@@ -63,3 +65,4 @@ export { AvroStream } from './transport/stream.js';
 
 // Debug
 export { DebugLogger } from './debug/index.js';
+export type { DebugMetrics } from './debug/index.js';

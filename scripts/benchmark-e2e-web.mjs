@@ -68,6 +68,7 @@ function summarize(samples) {
     min: sorted[0],
     median: percentile(sorted, 50),
     p95: percentile(sorted, 95),
+    p99: percentile(sorted, 99),
     max: sorted[n - 1],
     mean,
     stddev: Math.sqrt(variance),
@@ -125,9 +126,10 @@ function makePayload(index) {
 }
 
 function frame(fp, payloadBytes) {
-  const out = new Uint8Array(8 + payloadBytes.length);
-  out.set(fp, 0);
-  out.set(payloadBytes, 8);
+  const out = new Uint8Array(1 + 8 + payloadBytes.length);
+  out[0] = 0x01; // WIRE_VERSION_STANDARD
+  out.set(fp, 1);
+  out.set(payloadBytes, 9);
   return out;
 }
 
@@ -219,12 +221,13 @@ async function startServer({ port, host, maxBodyBytes }) {
         counters.avro.reqBytes += wire.length;
         counters.avro.requests += 1;
 
-        if (wire.length < 8) {
+        if (wire.length < 9) {
           writeJson(res, 400, { error: 'invalid avro frame' }, counters.avro);
           return;
         }
 
-        const fpHex = Buffer.from(wire.slice(0, 8)).toString('hex');
+        // wire[0] is the version byte; fp is at [1..9]
+        const fpHex = Buffer.from(wire.slice(1, 9)).toString('hex');
         if (fpHex !== requestFpHex) {
           res.writeHead(406, {
             'X-Avro-Missing-Schema': 'true',
@@ -234,7 +237,7 @@ async function startServer({ port, host, maxBodyBytes }) {
           return;
         }
 
-        const payload = wire.slice(8);
+        const payload = wire.slice(9);
         const decoded = requestType.fromBuffer(Buffer.from(payload));
 
         const output = {
@@ -330,6 +333,7 @@ function writeArtifacts({ outputDir, metadata, results, logLines }) {
     concurrency: r.concurrency,
     median_ms: r.summary.median,
     p95_ms: r.summary.p95,
+    p99_ms: r.summary.p99,
     throughput_req_s: r.throughput,
     req_bytes_total: r.bytes.reqBytes,
     res_bytes_total: r.bytes.resBytes,
@@ -354,12 +358,12 @@ function writeArtifacts({ outputDir, metadata, results, logLines }) {
   mdLines.push(`- Warmup requests: ${metadata.warmup}`);
   mdLines.push(`- Concurrency: ${metadata.concurrency}`);
   mdLines.push('');
-  mdLines.push('| Mode | Median | p95 | Throughput | Avg Request Bytes | Avg Response Bytes |');
-  mdLines.push('|---|---:|---:|---:|---:|---:|');
+  mdLines.push('| Mode | Median | p95 | p99 | Throughput | Avg Request Bytes | Avg Response Bytes |');
+  mdLines.push('|---|---:|---:|---:|---:|---:|---:|');
 
   for (const row of summaryRows) {
     mdLines.push(
-      `| ${row.mode} | ${row.median_ms.toFixed(2)} ms | ${row.p95_ms.toFixed(2)} ms | ${Math.round(row.throughput_req_s).toLocaleString()} req/s | ${row.avg_req_bytes.toFixed(1)} | ${row.avg_res_bytes.toFixed(1)} |`,
+      `| ${row.mode} | ${row.median_ms.toFixed(2)} ms | ${row.p95_ms.toFixed(2)} ms | ${row.p99_ms.toFixed(2)} ms | ${Math.round(row.throughput_req_s).toLocaleString()} req/s | ${row.avg_req_bytes.toFixed(1)} | ${row.avg_res_bytes.toFixed(1)} |`,
     );
   }
 
@@ -511,7 +515,7 @@ async function main() {
 
       log('');
       log(`=== ${mode.toUpperCase()} ===`);
-      log(`latency   median=${formatMs(summary.median)} p95=${formatMs(summary.p95)} avg=${formatMs(summary.mean)} stddev=${formatMs(summary.stddev)}`);
+      log(`latency   median=${formatMs(summary.median)} p95=${formatMs(summary.p95)} p99=${formatMs(summary.p99)} avg=${formatMs(summary.mean)} stddev=${formatMs(summary.stddev)}`);
       log(`throughput: ${Math.round(throughput).toLocaleString()} req/s`);
       log(`bytes     req=${formatBytes(bytes.reqBytes)} (${(bytes.reqBytes / bytes.requests).toFixed(1)} avg)`);
       log(`          res=${formatBytes(bytes.resBytes)} (${(bytes.resBytes / bytes.requests).toFixed(1)} avg)`);

@@ -18,9 +18,11 @@ export interface DebugMetrics {
 
 export class DebugLogger {
   private readonly _enabled: boolean;
+  private readonly _onMetrics: ((metrics: DebugMetrics) => void) | undefined;
 
-  constructor(enabled: boolean) {
+  constructor(enabled: boolean, onMetrics?: (metrics: DebugMetrics) => void) {
     this._enabled = enabled;
+    this._onMetrics = onMetrics;
   }
 
   get enabled(): boolean {
@@ -37,7 +39,7 @@ export class DebugLogger {
     payload: Record<string, unknown>,
     avroBinaryLength: number,
   ): void {
-    if (!this._enabled) return;
+    if (!this._enabled && !this._onMetrics) return;
 
     const jsonBytes = new TextEncoder().encode(JSON.stringify(payload)).length;
     const savedBytes = jsonBytes - avroBinaryLength;
@@ -55,18 +57,20 @@ export class DebugLogger {
       payload,
     };
 
-    const arrow = direction === 'outgoing' ? '>>>' : '<<<';
-    const label = direction === 'outgoing' ? 'REQUEST' : 'RESPONSE';
+    if (this._enabled) {
+      const arrow = direction === 'outgoing' ? '>>>' : '<<<';
+      const label = direction === 'outgoing' ? 'REQUEST' : 'RESPONSE';
 
-    console.group(
-      `[AvroStream] ${arrow} ${label} ${path} (${schemaName})`,
-    );
-    console.log('Payload:', payload);
-    console.log(
-      `Size: ${avroBinaryLength} bytes (Avro) vs ${jsonBytes} bytes (JSON) — saved ${savedBytes} bytes (${savedPercent}%)`,
-    );
-    console.groupEnd();
+      console.group(
+        `[AvroStream] ${arrow} ${label} ${path} (${schemaName})`,
+      );
+      console.log('Payload:', payload);
+      console.log(
+        `Size: ${avroBinaryLength} bytes (Avro) vs ${jsonBytes} bytes (JSON) — saved ${savedBytes} bytes (${savedPercent}%)`,
+      );
+      console.groupEnd();
+    }
 
-    return void metrics; // Keeps metrics reachable for potential event hooks.
+    this._onMetrics?.(metrics);
   }
 }

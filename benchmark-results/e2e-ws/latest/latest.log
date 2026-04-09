@@ -2,30 +2,30 @@
 node         : v24.14.0
 platform     : linux x64
 server       : ws://127.0.0.1:43120
-messages     : 1,200 per mode
-warmup       : 120 per mode
-concurrency  : 32
+messages     : 20,000 per mode
+warmup       : 2,000 per mode
+concurrency  : 128
 
 === JSON ===
-latency   median=1.34ms p95=5.88ms avg=1.74ms stddev=1.38ms
-throughput: 14,934 msg/s
-bytes     req=231.36 KB (179.5 avg)
-          res=100.55 KB (78.0 avg)
+latency   median=8.01ms p95=37.01ms p99=112.28ms avg=14.33ms stddev=27.65ms
+throughput: 7,806 msg/s
+bytes     req=3.77 MB (179.6 avg)
+          res=1.64 MB (78.0 avg)
 
 === AVRO ===
-latency   median=1.56ms p95=4.66ms avg=1.88ms stddev=1.15ms
-throughput: 15,634 msg/s
-bytes     req=109.25 KB (84.8 avg)
-          res=59.30 KB (46.0 avg)
+latency   median=7.32ms p95=23.52ms p99=76.98ms avg=10.79ms stddev=19.72ms
+throughput: 10,645 msg/s
+bytes     req=1.80 MB (85.8 avg)
+          res=1009.77 KB (47.0 avg)
 
 === Delta (Avro vs JSON) ===
-median latency : -16.00% (slower)
-throughput     : 4.69% (higher)
-request bytes  : 52.78% smaller
-response bytes : 41.03% smaller
+median latency : 8.56% (faster)
+throughput     : 36.36% (higher)
+request bytes  : 52.21% smaller
+response bytes : 39.74% smaller
 
 === Artifacts ===
-json    : /home/khaleddelassi/AvroStream JS/benchmark-results/e2e-ws/latest/latest.json
-csv     : /home/khaleddelassi/AvroStream JS/benchmark-results/e2e-ws/latest/latest.csv
-markdown: /home/khaleddelassi/AvroStream JS/benchmark-results/e2e-ws/latest/latest.md
-log     : /home/khaleddelassi/AvroStream JS/benchmark-results/e2e-ws/latest/latest.log
+json    : benchmark-results/e2e-ws/latest/latest.json
+csv     : benchmark-results/e2e-ws/latest/latest.csv
+markdown: benchmark-results/e2e-ws/latest/latest.md
+log     : benchmark-results/e2e-ws/latest/latest.log

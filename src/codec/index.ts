@@ -80,13 +80,19 @@ export function resolveToReaderSchema(
   }
 }
 
+/** Wire frame version byte for standard [version][fp][data] frames. */
+export const WIRE_VERSION_STANDARD = 0x01;
+/** Wire frame version byte for schema-inline [version][schema-len][schema][fp][data] frames. */
+export const WIRE_VERSION_SCHEMA = 0x02;
+
 /**
- * Frame data for the wire: [8-byte fingerprint][encoded data].
+ * Frame data for the wire: [1-byte version][8-byte fingerprint][encoded data].
  */
 export function frameForWire(payload: WirePayload): Uint8Array {
-  const frame = new Uint8Array(8 + payload.data.length);
-  frame.set(payload.fingerprint, 0);
-  frame.set(payload.data, 8);
+  const frame = new Uint8Array(1 + 8 + payload.data.length);
+  frame[0] = WIRE_VERSION_STANDARD;
+  frame.set(payload.fingerprint, 1);
+  frame.set(payload.data, 9);
   return frame;
 }
 
@@ -94,14 +100,18 @@ export function frameForWire(payload: WirePayload): Uint8Array {
  * Parse a wire frame back into fingerprint + data.
  */
 export function parseWireFrame(frame: Uint8Array): WirePayload {
-  if (frame.length < 8) {
+  if (frame.length < 9) {
     throw new CodecError(
-      `Invalid wire frame: expected at least 8 bytes, got ${frame.length}`,
+      `Invalid wire frame: expected at least 9 bytes, got ${frame.length}`,
     );
   }
+  const version = frame[0];
+  if (version !== WIRE_VERSION_STANDARD && version !== WIRE_VERSION_SCHEMA) {
+    throw new CodecError(`Unknown wire frame version: ${version}`);
+  }
   return {
-    fingerprint: frame.slice(0, 8),
-    data: frame.slice(8),
+    fingerprint: frame.slice(1, 9),
+    data: frame.slice(9),
   };
 }
 

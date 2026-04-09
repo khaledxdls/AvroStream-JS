@@ -222,9 +222,11 @@ function main() {
   const wire = generateWireBuffer(RECORD_COUNT, PAYLOAD_BYTES);
   const chunks = splitIntoChunks(wire, CHUNK_MIN, CHUNK_MAX);
 
-  // Warm-up
-  parseWithConcat(chunks);
-  parseWithQueue(chunks);
+  // Warm-up (3 rounds to ensure JIT is settled before timing)
+  for (let w = 0; w < 3; w++) {
+    parseWithConcat(chunks);
+    parseWithQueue(chunks);
+  }
 
   const oldBench = bench('concat/slice parser', () => parseWithConcat(chunks), ITERATIONS);
   const newBench = bench('byte-queue parser', () => parseWithQueue(chunks), ITERATIONS);

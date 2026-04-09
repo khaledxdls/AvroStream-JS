@@ -20,6 +20,7 @@ function stats(samples) {
     min: sorted[0],
     median: percentile(50),
     p95: percentile(95),
+    p99: percentile(99),
     max: sorted[n - 1],
     mean,
     stddev: Math.sqrt(variance),
@@ -395,9 +396,13 @@ function createSummaryRows(results) {
       scenario: result.name,
       records: result.count,
       avro_encode_median_ms: result.avroEncode.summary.median,
+      avro_encode_p99_ms: result.avroEncode.summary.p99,
       json_encode_median_ms: result.jsonEncode.summary.median,
+      json_encode_p99_ms: result.jsonEncode.summary.p99,
       avro_decode_median_ms: result.avroDecode.summary.median,
+      avro_decode_p99_ms: result.avroDecode.summary.p99,
       json_decode_median_ms: result.jsonDecode.summary.median,
+      json_decode_p99_ms: result.jsonDecode.summary.p99,
       avro_encode_ops_s: result.avroEncode.opsPerSec,
       json_encode_ops_s: result.jsonEncode.opsPerSec,
       avro_decode_ops_s: result.avroDecode.opsPerSec,
@@ -435,12 +440,12 @@ function toMarkdownReport(meta, rows) {
   lines.push(`- Measured rounds: ${meta.rounds}`);
   lines.push(`- Scenarios: ${meta.scenarios.join(', ')}`);
   lines.push('');
-  lines.push('| Records | Avro Encode (ms) | JSON Encode (ms) | Avro Decode (ms) | JSON Decode (ms) | Size Reduction | Encode Faster | Decode Faster |');
-  lines.push('|---:|---:|---:|---:|---:|---:|---:|---:|');
+  lines.push('| Records | Avro Encode (ms) | Avro Enc p99 | JSON Encode (ms) | JSON Enc p99 | Avro Decode (ms) | Avro Dec p99 | JSON Decode (ms) | JSON Dec p99 | Size Reduction | Encode Faster | Decode Faster |');
+  lines.push('|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
 
   for (const row of rows) {
     lines.push(
-      `| ${row.records.toLocaleString()} | ${row.avro_encode_median_ms.toFixed(2)} | ${row.json_encode_median_ms.toFixed(2)} | ${row.avro_decode_median_ms.toFixed(2)} | ${row.json_decode_median_ms.toFixed(2)} | ${row.size_reduction_percent.toFixed(2)}% | ${row.encode_avro_faster_percent.toFixed(2)}% | ${row.decode_avro_faster_percent.toFixed(2)}% |`,
+      `| ${row.records.toLocaleString()} | ${row.avro_encode_median_ms.toFixed(2)} | ${row.avro_encode_p99_ms.toFixed(2)} | ${row.json_encode_median_ms.toFixed(2)} | ${row.json_encode_p99_ms.toFixed(2)} | ${row.avro_decode_median_ms.toFixed(2)} | ${row.avro_decode_p99_ms.toFixed(2)} | ${row.json_decode_median_ms.toFixed(2)} | ${row.json_decode_p99_ms.toFixed(2)} | ${row.size_reduction_percent.toFixed(2)}% | ${row.encode_avro_faster_percent.toFixed(2)}% | ${row.decode_avro_faster_percent.toFixed(2)}% |`,
     );
   }
 
