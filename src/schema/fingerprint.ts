@@ -26,14 +26,15 @@ const TABLE: bigint[] = (() => {
   return table;
 })();
 
+const textEncoder = new TextEncoder();
+
 /**
  * Compute a 64-bit Rabin fingerprint of the canonical JSON form of a schema.
  * Returns an 8-byte Uint8Array (big-endian).
  */
 export function fingerprint(schema: object): Uint8Array {
   const canonical = JSON.stringify(schema);
-  const encoder = new TextEncoder();
-  const bytes = encoder.encode(canonical);
+  const bytes = textEncoder.encode(canonical);
 
   let fp = EMPTY;
   for (const b of bytes) {
@@ -59,4 +60,13 @@ export function fingerprintToHex(fp: Uint8Array): string {
     hex += HEX_CHARS[b >> 4]! + HEX_CHARS[b & 0xf]!;
   }
   return hex;
+}
+
+/**
+ * Convert a fingerprint Uint8Array to a BigInt for use as a Map key.
+ * Avoids the overhead of hex string conversion on the hot lookup path.
+ */
+export function fingerprintToBigInt(fp: Uint8Array): bigint {
+  const view = new DataView(fp.buffer, fp.byteOffset, fp.byteLength);
+  return view.getBigUint64(0, false);
 }

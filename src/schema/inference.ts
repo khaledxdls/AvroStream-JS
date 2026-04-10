@@ -91,7 +91,9 @@ function inferType(
       return 'boolean';
 
     case 'number':
-      return Number.isInteger(value) ? 'int' : 'double';
+      if (!Number.isInteger(value)) return 'double';
+      if (value >= -2147483648 && value <= 2147483647) return 'int';
+      return 'long';
 
     case 'bigint':
       return 'long';

@@ -1,82 +1,82 @@
 {
   "metadata": {
     "benchmarkName": "E2E Web Interaction Benchmark (JSON vs Avro)",
-    "generatedAt": "2026-04-09T10:19:43.792Z",
+    "generatedAt": "2026-04-10T05:51:14.745Z",
     "node": "v24.14.0",
     "platform": "linux x64",
     "host": "127.0.0.1",
     "port": 43110,
-    "requests": 3000,
+    "requests": 5000,
     "warmup": 300,
-    "concurrency": 24
+    "concurrency": 32
   },
   "summary": [
     {
       "mode": "json",
-      "requests": 3000,
-      "concurrency": 24,
-      "median_ms": 15.783939999999347,
-      "p95_ms": 80.72041599999966,
-      "p99_ms": 134.28577799999994,
-      "throughput_req_s": 936.101825150024,
-      "req_bytes_total": 862155,
-      "res_bytes_total": 312750,
-      "avg_req_bytes": 287.385,
+      "requests": 5000,
+      "concurrency": 32,
+      "median_ms": 9.834640000000036,
+      "p95_ms": 26.65697799999998,
+      "p99_ms": 45.33237300000019,
+      "throughput_req_s": 2461.6013112946243,
+      "req_bytes_total": 1436926,
+      "res_bytes_total": 521250,
+      "avg_req_bytes": 287.3852,
       "avg_res_bytes": 104.25
     },
     {
       "mode": "avro",
-      "requests": 3000,
-      "concurrency": 24,
-      "median_ms": 8.97303600000032,
-      "p95_ms": 24.9567619999998,
-      "p99_ms": 36.502840999999535,
-      "throughput_req_s": 2291.6977785329036,
-      "req_bytes_total": 439476,
-      "res_bytes_total": 135750,
-      "avg_req_bytes": 146.492,
+      "requests": 5000,
+      "concurrency": 32,
+      "median_ms": 11.409623999999894,
+      "p95_ms": 36.26957599999969,
+      "p99_ms": 58.32826299999988,
+      "throughput_req_s": 2174.8179710524205,
+      "req_bytes_total": 732459,
+      "res_bytes_total": 226250,
+      "avg_req_bytes": 146.4918,
       "avg_res_bytes": 45.25
     }
   ],
   "results": [
     {
       "mode": "json",
-      "requests": 3000,
-      "concurrency": 24,
+      "requests": 5000,
+      "concurrency": 32,
       "summary": {
-        "min": 1.620245000000068,
-        "median": 15.783939999999347,
-        "p95": 80.72041599999966,
-        "p99": 134.28577799999994,
-        "max": 191.27248699999973,
-        "mean": 25.615523625333378,
-        "stddev": 25.88211644744298
+        "min": 3.105310999999915,
+        "median": 9.834640000000036,
+        "p95": 26.65697799999998,
+        "p99": 45.33237300000019,
+        "max": 155.25867700000003,
+        "mean": 12.97594767740001,
+        "stddev": 10.68193572192692
       },
-      "throughput": 936.101825150024,
+      "throughput": 2461.6013112946243,
       "bytes": {
-        "reqBytes": 862155,
-        "resBytes": 312750,
-        "requests": 3000
+        "reqBytes": 1436926,
+        "resBytes": 521250,
+        "requests": 5000
       }
     },
     {
       "mode": "avro",
-      "requests": 3000,
-      "concurrency": 24,
+      "requests": 5000,
+      "concurrency": 32,
       "summary": {
-        "min": 1.992938000000322,
-        "median": 8.97303600000032,
-        "p95": 24.9567619999998,
-        "p99": 36.502840999999535,
-        "max": 68.98058100000071,
-        "mean": 10.457954264666684,
-        "stddev": 7.389716303165496
+        "min": 4.822169000000031,
+        "median": 11.409623999999894,
+        "p95": 36.26957599999969,
+        "p99": 58.32826299999988,
+        "max": 124.08591999999999,
+        "mean": 14.650952643999961,
+        "stddev": 9.779448653692537
       },
-      "throughput": 2291.6977785329036,
+      "throughput": 2174.8179710524205,
       "bytes": {
-        "reqBytes": 439476,
-        "resBytes": 135750,
-        "requests": 3000
+        "reqBytes": 732459,
+        "resBytes": 226250,
+        "requests": 5000
       }
     }
   ]

@@ -41,7 +41,10 @@ export class DebugLogger {
   ): void {
     if (!this._enabled && !this._onMetrics) return;
 
-    const jsonBytes = new TextEncoder().encode(JSON.stringify(payload)).length;
+    const jsonStr = JSON.stringify(payload);
+    const jsonBytes = typeof Buffer !== 'undefined'
+      ? Buffer.byteLength(jsonStr, 'utf8')
+      : new TextEncoder().encode(jsonStr).length;
     const savedBytes = jsonBytes - avroBinaryLength;
     const savedPercent =
       jsonBytes > 0 ? ((savedBytes / jsonBytes) * 100).toFixed(1) : '0.0';

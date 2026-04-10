@@ -1,81 +1,81 @@
 {
   "metadata": {
-    "generatedAt": "2026-04-09T10:18:51.132Z",
+    "generatedAt": "2026-04-10T05:51:05.966Z",
     "node": "v24.14.0",
     "platform": "linux x64",
     "host": "127.0.0.1",
     "port": 43120,
-    "requests": 20000,
-    "warmup": 2000,
-    "concurrency": 128
+    "requests": 6000,
+    "warmup": 600,
+    "concurrency": 64
   },
   "summary": [
     {
       "mode": "json",
-      "messages": 20000,
-      "concurrency": 128,
-      "median_ms": 8.008612999999968,
-      "p95_ms": 37.00942899999973,
-      "p99_ms": 112.28336600000011,
-      "throughput_msg_s": 7806.183556441625,
-      "req_bytes_total": 3950600,
-      "res_bytes_total": 1716000,
-      "avg_req_bytes": 179.57272727272726,
+      "messages": 6000,
+      "concurrency": 64,
+      "median_ms": 1.618284000000017,
+      "p95_ms": 3.431662000000017,
+      "p99_ms": 18.817131999999987,
+      "throughput_msg_s": 26780.451687846453,
+      "req_bytes_total": 1185111,
+      "res_bytes_total": 514800,
+      "avg_req_bytes": 179.56227272727273,
       "avg_res_bytes": 78
     },
     {
       "mode": "avro",
-      "messages": 20000,
-      "concurrency": 128,
-      "median_ms": 7.3228439999998045,
-      "p95_ms": 23.517945999999938,
-      "p99_ms": 76.98059299999977,
-      "throughput_msg_s": 10644.606698587657,
-      "req_bytes_total": 1888052,
-      "res_bytes_total": 1034000,
-      "avg_req_bytes": 85.82054545454545,
+      "messages": 6000,
+      "concurrency": 64,
+      "median_ms": 2.010992999999985,
+      "p95_ms": 4.095762000000036,
+      "p99_ms": 16.129568000000006,
+      "throughput_msg_s": 24223.577027147618,
+      "req_bytes_total": 566356,
+      "res_bytes_total": 310200,
+      "avg_req_bytes": 85.81151515151515,
       "avg_res_bytes": 47
     }
   ],
   "results": [
     {
       "mode": "json",
-      "messages": 20000,
-      "concurrency": 128,
+      "messages": 6000,
+      "concurrency": 64,
       "summary": {
-        "min": 1.4029660000001059,
-        "median": 8.008612999999968,
-        "p95": 37.00942899999973,
-        "p99": 112.28336600000011,
-        "max": 334.28484100000003,
-        "mean": 14.329683588550015,
-        "stddev": 27.652648934845
+        "min": 0.44097199999998793,
+        "median": 1.618284000000017,
+        "p95": 3.431662000000017,
+        "p99": 18.817131999999987,
+        "max": 20.75485599999999,
+        "mean": 2.126748208166666,
+        "stddev": 2.5183424689628855
       },
-      "throughput": 7806.183556441625,
+      "throughput": 26780.451687846453,
       "bytes": {
-        "reqBytes": 3950600,
-        "resBytes": 1716000,
-        "messages": 22000
+        "reqBytes": 1185111,
+        "resBytes": 514800,
+        "messages": 6600
       }
     },
     {
       "mode": "avro",
-      "messages": 20000,
-      "concurrency": 128,
+      "messages": 6000,
+      "concurrency": 64,
       "summary": {
-        "min": 1.6581289999999171,
-        "median": 7.3228439999998045,
-        "p95": 23.517945999999938,
-        "p99": 76.98059299999977,
-        "max": 230.60525800000005,
-        "mean": 10.78950547634999,
-        "stddev": 19.717403704116858
+        "min": 0.620441000000028,
+        "median": 2.010992999999985,
+        "p95": 4.095762000000036,
+        "p99": 16.129568000000006,
+        "max": 17.783623999999975,
+        "mean": 2.4297761915000033,
+        "stddev": 1.8871101942530426
       },
-      "throughput": 10644.606698587657,
+      "throughput": 24223.577027147618,
       "bytes": {
-        "reqBytes": 1888052,
-        "resBytes": 1034000,
-        "messages": 22000
+        "reqBytes": 566356,
+        "resBytes": 310200,
+        "messages": 6600
       }
     }
   ]

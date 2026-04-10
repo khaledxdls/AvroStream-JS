@@ -15,11 +15,22 @@ import { AvroCircularReferenceError, CodecError } from '../errors/index.js';
  * Encode a JS object into an Avro binary buffer using the given registry entry.
  * Returns the raw binary data (without the fingerprint prefix).
  */
+/**
+ * Encode a JS object into an Avro binary buffer using the given registry entry.
+ *
+ * @param skipCircularCheck  Skip the pre-encode circular reference traversal.
+ *   When `true`, encode relies on avsc's own validation — which silently drops
+ *   unknown fields (including circular ones).  Set to `true` on hot paths where
+ *   you control the input shape.  Default: `false`.
+ */
 export function encode(
   entry: RegistryEntry,
   obj: Record<string, unknown>,
+  skipCircularCheck = false,
 ): Uint8Array {
-  assertNoCircularRefs(obj);
+  if (!skipCircularCheck) {
+    assertNoCircularRefs(obj);
+  }
 
   try {
     const buf = entry.type.toBuffer(obj);
@@ -106,8 +117,16 @@ export function parseWireFrame(frame: Uint8Array): WirePayload {
     );
   }
   const version = frame[0];
-  if (version !== WIRE_VERSION_STANDARD && version !== WIRE_VERSION_SCHEMA) {
-    throw new CodecError(`Unknown wire frame version: ${version}`);
+  if (version === WIRE_VERSION_SCHEMA) {
+    throw new CodecError(
+      'Received schema-inline frame (v0x02) in a standard-frame context. ' +
+        'Schema negotiation frames must be handled by the transport layer.',
+    );
+  }
+  if (version !== WIRE_VERSION_STANDARD) {
+    throw new CodecError(
+      `Unknown wire frame version: 0x${version!.toString(16).padStart(2, '0')}`,
+    );
   }
   return {
     fingerprint: frame.slice(1, 9),

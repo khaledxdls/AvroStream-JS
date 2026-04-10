@@ -69,8 +69,14 @@ describe('Codec', () => {
       expect(Array.from(parsed.data)).toEqual([10, 20, 30]);
     });
 
-    it('throws on frames shorter than 8 bytes', () => {
+    it('throws on frames shorter than 9 bytes', () => {
       expect(() => parseWireFrame(new Uint8Array(5))).toThrow(CodecError);
+    });
+
+    it('rejects schema-inline frames (v0x02)', () => {
+      const frame = new Uint8Array(12);
+      frame[0] = 0x02; // WIRE_VERSION_SCHEMA
+      expect(() => parseWireFrame(frame)).toThrow('schema-inline');
     });
 
     it('handles empty data portion', () => {

@@ -7,7 +7,7 @@
  */
 
 import type { AvroRecordSchema, SchemaFingerprint } from '../types.js';
-import { fingerprint, fingerprintToHex } from './fingerprint.js';
+import { fingerprint, fingerprintToHex, fingerprintToBigInt } from './fingerprint.js';
 import { SchemaNotFoundError } from '../errors/index.js';
 import avsc from 'avsc';
 
@@ -18,26 +18,26 @@ export interface RegistryEntry {
 }
 
 export class SchemaRegistry {
-  /** fingerprint hex → entry */
-  private readonly _entries = new Map<string, RegistryEntry>();
+  /** fingerprint bigint → entry */
+  private readonly _entries = new Map<bigint, RegistryEntry>();
 
-  /** logical key (path / message type) → fingerprint hex */
-  private readonly _keyIndex = new Map<string, string>();
+  /** logical key (path / message type) → fingerprint bigint */
+  private readonly _keyIndex = new Map<string, bigint>();
 
   /**
    * Register a schema.  Returns the fingerprint.
    */
   register(schema: AvroRecordSchema, key?: string): Uint8Array {
     const fp = fingerprint(schema);
-    const hex = fingerprintToHex(fp);
+    const id = fingerprintToBigInt(fp);
 
-    if (!this._entries.has(hex)) {
+    if (!this._entries.has(id)) {
       const type = avsc.Type.forSchema(schema as avsc.Schema);
-      this._entries.set(hex, { schema, type, fingerprint: fp });
+      this._entries.set(id, { schema, type, fingerprint: fp });
     }
 
     if (key) {
-      this._keyIndex.set(key, hex);
+      this._keyIndex.set(key, id);
     }
 
     return fp;
@@ -47,10 +47,10 @@ export class SchemaRegistry {
    * Retrieve an entry by its fingerprint bytes.
    */
   getByFingerprint(fp: Uint8Array): RegistryEntry {
-    const hex = fingerprintToHex(fp);
-    const entry = this._entries.get(hex);
+    const id = fingerprintToBigInt(fp);
+    const entry = this._entries.get(id);
     if (!entry) {
-      throw new SchemaNotFoundError(hex);
+      throw new SchemaNotFoundError(fingerprintToHex(fp));
     }
     return entry;
   }
@@ -59,16 +59,16 @@ export class SchemaRegistry {
    * Retrieve an entry by its logical key (e.g. '/users').
    */
   getByKey(key: string): RegistryEntry | undefined {
-    const hex = this._keyIndex.get(key);
-    if (!hex) return undefined;
-    return this._entries.get(hex);
+    const id = this._keyIndex.get(key);
+    if (id === undefined) return undefined;
+    return this._entries.get(id);
   }
 
   /**
    * Check whether a fingerprint is known.
    */
   has(fp: Uint8Array): boolean {
-    return this._entries.has(fingerprintToHex(fp));
+    return this._entries.has(fingerprintToBigInt(fp));
   }
 
   /**

@@ -11,13 +11,14 @@
  *   ... repeating ...
  *
  * The stream header is:
+ *   [1 byte: wire version (0x01)]
  *   [8 bytes: schema fingerprint]
  */
 
 import type { SchemaRegistry } from '../schema/registry.js';
 import type { DebugLogger } from '../debug/index.js';
 import type { RegistryEntry } from '../schema/registry.js';
-import { decode } from '../codec/index.js';
+import { decode, WIRE_VERSION_STANDARD } from '../codec/index.js';
 import { CodecError } from '../errors/index.js';
 
 export interface StreamDecoderConfig {
@@ -133,20 +134,27 @@ export async function createAvroStream(
     throw new CodecError('Response has no readable body for streaming.');
   }
 
-  // Read the 8-byte schema fingerprint from the start of the stream.
+  // Read the 1-byte version + 8-byte schema fingerprint from the start of the stream.
   const reader = response.body.getReader();
   const headerQueue = new ByteQueue();
 
-  while (headerQueue.length < 8) {
+  while (headerQueue.length < 9) {
     const { done, value } = await reader.read();
     if (done) {
-      throw new CodecError('Stream ended before schema fingerprint was received.');
+      throw new CodecError('Stream ended before stream header was received.');
     }
     if (value) {
       headerQueue.push(value);
     }
   }
 
+  const version = headerQueue.shift(1)[0];
+  if (version !== WIRE_VERSION_STANDARD) {
+    throw new CodecError(
+      `Unsupported stream wire version: 0x${version!.toString(16).padStart(2, '0')}. ` +
+        'Only version 0x01 is supported for streaming.',
+    );
+  }
   const fp = headerQueue.shift(8);
   const remainder = headerQueue.shift(headerQueue.length);
   const entry = config.registry.getByFingerprint(fp);

@@ -22,6 +22,17 @@ describe('Schema Inference', () => {
     expect(schema.fields[0]!.type).toBe('double');
   });
 
+  it('infers long for integers exceeding 32-bit range', () => {
+    const schema = inferSchema({ ts: 2147483648 });
+    expect(schema.fields[0]!.type).toBe('long');
+  });
+
+  it('infers int for integers at the 32-bit boundary', () => {
+    const schema = inferSchema({ max: 2147483647, min: -2147483648 });
+    expect(schema.fields[0]!.type).toBe('int');
+    expect(schema.fields[1]!.type).toBe('int');
+  });
+
   it('infers long for bigint values', () => {
     const schema = inferSchema({ big: BigInt(9007199254740991) });
     expect(schema.fields[0]!.type).toBe('long');
