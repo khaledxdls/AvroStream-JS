@@ -43,7 +43,7 @@ export class AvroClient {
 
   constructor(config: AvroClientConfig) {
     this._config = {
-      endpoint: config.endpoint.replace(/\/+$/, ''),
+      endpoint: stripTrailingSlashes(config.endpoint),
       debug: config.debug ?? false,
       autoInfer: config.autoInfer ?? true,
       offline: config.offline ?? false,
@@ -267,6 +267,14 @@ function cloneFetchOptions(options?: AvroFetchOptions): AvroFetchOptions | undef
     body: options.body,   // no structuredClone — avsc never mutates the input
     headers: options.headers ? { ...options.headers } : undefined,
   };
+}
+
+function stripTrailingSlashes(url: string): string {
+  let end = url.length;
+  while (end > 0 && url.charCodeAt(end - 1) === 0x2f /* '/' */) {
+    end--;
+  }
+  return end === url.length ? url : url.slice(0, end);
 }
 
 function buffersEqual(a: Uint8Array, b: Uint8Array): boolean {
