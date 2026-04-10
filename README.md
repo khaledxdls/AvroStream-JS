@@ -76,6 +76,69 @@ const socket = client.connectSocket('wss://api.example.com', {
 });
 ```
 
+## Demo
+
+A runnable demo is included under `demo/` to exercise the full API surface — HTTP, WebSocket, schema negotiation, metrics, and reconnection — as a developer would using only this README.
+
+**Start the server:**
+
+```bash
+node demo/server.mjs
+```
+
+**Run the Node.js client:**
+
+```bash
+node demo/client.mjs
+```
+
+**Or open the web UI** at `http://localhost:3000` for an interactive browser demo.
+
+### What the demo covers
+
+| Section | What it exercises |
+|---|---|
+| **1. Pre-compiled schemas** | `AvroClient` with `schemas` map, `debug: true`, POST/GET with automatic Avro encoding |
+| **2. onMetrics telemetry** | `onMetrics` callback collecting byte-savings per request |
+| **3. 406 schema negotiation** | `autoInfer: true`, server responds 406, client retries with full schema inline |
+| **4. WebSocket chat** | `connectSocket()`, `socket.send()`, `socket.on('message')` with binary framing |
+| **5. Reconnect config** | `reconnect: true` with `reconnectOptions` (backoff, jitter, max attempts) |
+| **6. Registry introspection** | `client.registry.size` |
+
+### Sample output
+
+```
+[AvroStream] >>> REQUEST /api/users (User)
+  Payload: { id: 0, name: 'Diana', email: 'diana@example.com', role: 'editor' }
+  Size: 32 bytes (Avro) vs 67 bytes (JSON) — saved 35 bytes (52.2%)
+
+[AvroStream] >>> REQUEST /api/orders (Order)
+  Size: 27 bytes (Avro) vs 92 bytes (JSON) — saved 65 bytes (70.7%)
+
+[AvroStream] >>> REQUEST ws://ChatMessage (ChatMessage)
+  Size: 41 bytes (Avro) vs 80 bytes (JSON) — saved 39 bytes (48.8%)
+```
+
+### Server-side integration
+
+The demo server (`demo/server.mjs`) shows how to integrate AvroStream on the server side with Express:
+
+```js
+import { SchemaRegistry, encode, decode, frameForWire, parseWireFrame } from 'avrostream-js';
+
+const registry = new SchemaRegistry();
+registry.register(UserSchema, '/api/users');
+
+// Middleware: decode Avro requests, encode Avro responses
+app.post('/api/users', avroMiddleware('/api/users'), (req, res) => {
+  const body = req.avroBody || req.body; // Avro-decoded or JSON fallback
+  // ... handle request ...
+  res.avro(responseData); // Sends Avro if client accepts it, JSON otherwise
+});
+```
+
+The server handles both standard frames (`0x01`) and schema-inline frames (`0x02` from 406 retries), and responds with `X-Avro-Missing-Schema: true` to trigger client-side schema negotiation.
+
 ## Pre-compiled Schemas (CLI)
 
 ```bash

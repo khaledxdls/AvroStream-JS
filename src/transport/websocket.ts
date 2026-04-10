@@ -102,7 +102,8 @@ export class AvroSocket {
     }
 
     const schemaKey = `ws:${messageType}`;
-    let entry = this._config.registry.getByKey(schemaKey);
+    let entry = this._config.registry.getByKey(schemaKey)
+      ?? this._config.registry.getByKey(messageType);
 
     if (!entry) {
       if (!this._config.autoInfer) {
@@ -244,6 +245,11 @@ export class AvroSocket {
       const handlers = this._messageHandlers.get(messageType);
       if (handlers) {
         for (const handler of handlers) handler(decoded);
+      }
+      // Fire catch-all 'message' handlers for any message type
+      const catchAll = this._messageHandlers.get('message');
+      if (catchAll) {
+        for (const handler of catchAll) handler(decoded);
       }
     } catch (err) {
       const error = err instanceof Error ? err : new CodecError(String(err));
