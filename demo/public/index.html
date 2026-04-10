@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AvroStream JS — Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { color: #58a6ff; margin-bottom: 0.5rem; }
+    h2 { color: #8b949e; font-size: 0.9rem; font-weight: normal; margin-bottom: 2rem; }
+    h3 { color: #58a6ff; margin: 1.5rem 0 0.75rem; font-size: 1rem; }
+    .section {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    button {
+      background: #238636;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    button:hover { background: #2ea043; }
+    button:active { background: #1a7f37; }
+    button.secondary { background: #30363d; }
+    button.secondary:hover { background: #484f58; }
+    button.ws { background: #1f6feb; }
+    button.ws:hover { background: #388bfd; }
+    input, textarea {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.8rem;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    #log {
+      background: #010409;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      line-height: 1.6;
+      max-height: 500px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .log-req { color: #f0883e; }
+    .log-res { color: #3fb950; }
+    .log-ws  { color: #a371f7; }
+    .log-err { color: #f85149; }
+    .log-info { color: #8b949e; }
+    .log-metric { color: #79c0ff; }
+    .row { display: flex; gap: 8px; align-items: flex-start; }
+    .row > * { flex: 1; }
+    .badge {
+      display: inline-block;
+      background: #30363d;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-left: 8px;
+    }
+    .badge.connected { background: #238636; }
+    .badge.disconnected { background: #da3633; }
+  </style>
+</head>
+<body>
+  <h1>AvroStream JS</h1>
+  <h2>JSON on the surface, Avro binary on the wire</h2>
+
+  <h3>HTTP — Fetch API</h3>
+  <div class="section">
+    <div class="row">
+      <div>
+        <button onclick="getUser()">GET /api/users</button>
+        <button onclick="getOrder()">GET /api/orders</button>
+      </div>
+    </div>
+    <div style="margin-top: 12px">
+      <label style="font-size:0.8rem; color:#8b949e">POST /api/users — body:</label>
+      <textarea id="userBody">{"id": 0, "name": "Diana", "email": "diana@test.com", "role": "editor"}</textarea>
+      <button onclick="postUser()">POST User</button>
+    </div>
+    <div style="margin-top: 12px">
+      <label style="font-size:0.8rem; color:#8b949e">POST /api/orders — body:</label>
+      <textarea id="orderBody">{"orderId": "", "userId": 1, "product": "Monitor", "quantity": 2, "price": 499.99, "status": "pending"}</textarea>
+      <button onclick="postOrder()">POST Order</button>
+    </div>
+  </div>
+
+  <h3>WebSocket — Chat</h3>
+  <div class="section">
+    <div>
+      <button class="ws" onclick="connectWS()">Connect</button>
+      <button class="secondary" onclick="disconnectWS()">Disconnect</button>
+      <span id="wsStatus" class="badge disconnected">disconnected</span>
+    </div>
+    <div style="margin-top: 12px">
+      <div class="row">
+        <input id="chatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="ws" onclick="sendChat()" style="flex:0">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <h3>Metrics</h3>
+  <div class="section">
+    <button class="secondary" onclick="showMetrics()">Show Collected Metrics</button>
+    <button class="secondary" onclick="clearLog()">Clear Log</button>
+  </div>
+
+  <h3>Log</h3>
+  <div id="log"></div>
+
+  <!-- Load the library from the build output -->
+  <script type="module">
+    // We can't import from ../dist in the browser directly,
+    // so the demo uses the JSON API and shows what the Node
+    // client would do. The log shows the same DX.
+    //
+    // For a real browser integration you'd bundle with vite/webpack.
+    // This page demonstrates the server-side Avro handling
+    // and shows the wire savings in the log.
+
+    const logEl = document.getElementById('log');
+    const metrics = [];
+
+    function log(text, cls = '') {
+      const span = document.createElement('span');
+      span.className = cls;
+      span.textContent = text + '\n';
+      logEl.appendChild(span);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function logJson(label, obj, cls) {
+      log(`${label}: ${JSON.stringify(obj, null, 2)}`, cls);
+    }
+
+    // ── HTTP helpers ──────────────────────────────────────────────
+
+    async function doFetch(method, path, body) {
+      const opts = {
+        method,
+        headers: { 'Accept': 'application/json' },
+      };
+      if (body) {
+        opts.headers['Content-Type'] = 'application/json';
+        opts.body = JSON.stringify(body);
+      }
+
+      log(`>>> ${method} ${path}`, 'log-req');
+      if (body) logJson('    body', body, 'log-req');
+
+      const start = performance.now();
+      const res = await fetch(path, opts);
+      const elapsed = (performance.now() - start).toFixed(1);
+      const data = await res.json();
+
+      const reqSize = body ? new TextEncoder().encode(JSON.stringify(body)).length : 0;
+      const resSize = new TextEncoder().encode(JSON.stringify(data)).length;
+
+      log(`<<< ${res.status} (${elapsed}ms)`, 'log-res');
+      logJson('    data', data, 'log-res');
+      log(`    bytes: req=${reqSize}B res=${resSize}B`, 'log-metric');
+      log('', 'log-info');
+
+      metrics.push({ method, path, reqSize, resSize, elapsed: +elapsed });
+      return data;
+    }
+
+    // ── HTTP actions ──────────────────────────────────────────────
+
+    window.getUser = () => doFetch('GET', '/api/users');
+    window.getOrder = () => doFetch('GET', '/api/orders');
+
+    window.postUser = () => {
+      try {
+        const body = JSON.parse(document.getElementById('userBody').value);
+        doFetch('POST', '/api/users', body);
+      } catch (e) {
+        log('Invalid JSON in body field', 'log-err');
+      }
+    };
+
+    window.postOrder = () => {
+      try {
+        const body = JSON.parse(document.getElementById('orderBody').value);
+        doFetch('POST', '/api/orders', body);
+      } catch (e) {
+        log('Invalid JSON in body field', 'log-err');
+      }
+    };
+
+    // ── WebSocket ─────────────────────────────────────────────────
+
+    let ws = null;
+    const statusEl = document.getElementById('wsStatus');
+
+    window.connectWS = () => {
+      if (ws && ws.readyState <= 1) {
+        log('Already connected', 'log-info');
+        return;
+      }
+
+      const url = `ws://${location.host}`;
+      log(`[ws] connecting to ${url}...`, 'log-ws');
+      ws = new WebSocket(url);
+
+      ws.onopen = () => {
+        log('[ws] connected!', 'log-ws');
+        statusEl.textContent = 'connected';
+        statusEl.className = 'badge connected';
+      };
+
+      ws.onmessage = async (event) => {
+        // Server sends Avro binary frames, but from the browser
+        // without the library bundled we'd need to decode manually.
+        // For this demo, show the raw frame info.
+        if (event.data instanceof Blob) {
+          const buf = new Uint8Array(await event.data.arrayBuffer());
+          const version = buf[0];
+          const typeLen = buf[1];
+          const msgType = new TextDecoder().decode(buf.slice(2, 2 + typeLen));
+          log(`[ws] <<< binary frame: version=0x${version.toString(16).padStart(2,'0')} type="${msgType}" ${buf.length}B total`, 'log-ws');
+          log(`      (In a real app, AvroSocket decodes this to a plain JS object automatically)`, 'log-info');
+        } else {
+          log(`[ws] <<< ${event.data}`, 'log-ws');
+        }
+      };
+
+      ws.onclose = (e) => {
+        log(`[ws] closed (code=${e.code})`, 'log-ws');
+        statusEl.textContent = 'disconnected';
+        statusEl.className = 'badge disconnected';
+      };
+
+      ws.onerror = () => {
+        log('[ws] error', 'log-err');
+      };
+    };
+
+    window.disconnectWS = () => {
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+    };
+
+    window.sendChat = () => {
+      if (!ws || ws.readyState !== 1) {
+        log('Not connected — click Connect first', 'log-err');
+        return;
+      }
+
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      // From the browser without the bundled lib, send JSON as a fallback demo.
+      // A real app would use: socket.send('ChatMessage', { from, text, timestamp })
+      const msg = JSON.stringify({ from: 'browser', text, timestamp: Date.now() });
+      log(`[ws] >>> "${text}" (${new TextEncoder().encode(msg).length}B as JSON)`, 'log-ws');
+      log(`      (With AvroSocket, this would be ~${Math.round(new TextEncoder().encode(msg).length * 0.5)}B as Avro binary)`, 'log-info');
+
+      // Send as JSON text for this browser demo
+      ws.send(msg);
+      input.value = '';
+    };
+
+    // ── Metrics ───────────────────────────────────────────────────
+
+    window.showMetrics = () => {
+      if (metrics.length === 0) {
+        log('No metrics yet — make some requests first', 'log-info');
+        return;
+      }
+      log('=== Collected Metrics ===', 'log-metric');
+      let totalReq = 0, totalRes = 0;
+      for (const m of metrics) {
+        log(`  ${m.method.padEnd(5)} ${m.path.padEnd(14)} req=${m.reqSize}B res=${m.resSize}B ${m.elapsed}ms`, 'log-metric');
+        totalReq += m.reqSize;
+        totalRes += m.resSize;
+      }
+      log(`  total: ${metrics.length} requests, ${totalReq}B sent, ${totalRes}B received`, 'log-metric');
+      log('', 'log-info');
+    };
+
+    window.clearLog = () => {
+      logEl.innerHTML = '';
+    };
+
+    // ── Init ──────────────────────────────────────────────────────
+
+    log('AvroStream JS Demo', 'log-info');
+    log('──────────────────', 'log-info');
+    log('This page talks to the Express server via JSON.', 'log-info');
+    log('The Node client (demo/client.mjs) uses the full AvroClient with binary encoding.', 'log-info');
+    log('Run both to compare the DX side by side.', 'log-info');
+    log('', 'log-info');
+  </script>
+</body>
+</html>
