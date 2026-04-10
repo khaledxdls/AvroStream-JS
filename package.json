@@ -66,11 +66,15 @@
     "streaming",
     "performance"
   ],
-  "author": "",
+  "author": "Delassi Khaled Bachir",
   "license": "MIT",
+  "homepage": "https://github.com/khaledxdls/AvroStream-JS#readme",
+  "bugs": {
+    "url": "https://github.com/khaledxdls/AvroStream-JS/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/avrostream/avrostream-js"
+    "url": "https://github.com/khaledxdls/AvroStream-JS"
   },
   "engines": {
     "node": ">=18.0.0"
