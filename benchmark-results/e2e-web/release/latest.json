@@ -1,0 +1,83 @@
+{
+  "metadata": {
+    "benchmarkName": "E2E Web Interaction Benchmark (JSON vs Avro)",
+    "generatedAt": "2026-04-10T07:21:22.594Z",
+    "node": "v24.14.0",
+    "platform": "linux x64",
+    "host": "127.0.0.1",
+    "port": 43110,
+    "requests": 10000,
+    "warmup": 1000,
+    "concurrency": 48
+  },
+  "summary": [
+    {
+      "mode": "json",
+      "requests": 10000,
+      "concurrency": 48,
+      "median_ms": 32.3066400000007,
+      "p95_ms": 153.16612299999997,
+      "p99_ms": 232.07637500000055,
+      "throughput_req_s": 885.1506862063953,
+      "req_bytes_total": 2873853,
+      "res_bytes_total": 1042500,
+      "avg_req_bytes": 287.3853,
+      "avg_res_bytes": 104.25
+    },
+    {
+      "mode": "avro",
+      "requests": 10000,
+      "concurrency": 48,
+      "median_ms": 23.71159500000067,
+      "p95_ms": 133.09618599999885,
+      "p99_ms": 260.13617299999896,
+      "throughput_req_s": 1207.8948225438323,
+      "req_bytes_total": 1464934,
+      "res_bytes_total": 452500,
+      "avg_req_bytes": 146.4934,
+      "avg_res_bytes": 45.25
+    }
+  ],
+  "results": [
+    {
+      "mode": "json",
+      "requests": 10000,
+      "concurrency": 48,
+      "summary": {
+        "min": 2.789940000000115,
+        "median": 32.3066400000007,
+        "p95": 153.16612299999997,
+        "p99": 232.07637500000055,
+        "max": 1772.184803,
+        "mean": 54.174768392300116,
+        "stddev": 91.8484283940044
+      },
+      "throughput": 885.1506862063953,
+      "bytes": {
+        "reqBytes": 2873853,
+        "resBytes": 1042500,
+        "requests": 10000
+      }
+    },
+    {
+      "mode": "avro",
+      "requests": 10000,
+      "concurrency": 48,
+      "summary": {
+        "min": 10.076996999996481,
+        "median": 23.71159500000067,
+        "p95": 133.09618599999885,
+        "p99": 260.13617299999896,
+        "max": 419.1682400000009,
+        "mean": 39.63931080790005,
+        "stddev": 46.680408537769154
+      },
+      "throughput": 1207.8948225438323,
+      "bytes": {
+        "reqBytes": 1464934,
+        "resBytes": 452500,
+        "requests": 10000
+      }
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "metadata": {
+    "benchmarkName": "Internals Micro-Benchmark",
+    "generatedAt": "2026-04-10T07:18:50.985Z",
+    "node": "v24.14.0",
+    "platform": "linux x64",
+    "warmupRounds": 5,
+    "measuredRounds": 12,
+    "batchSize": 5000
+  },
+  "summary": [
+    {
+      "name": "encode (with circ-check) x5000",
+      "category": "encode",
+      "median_ms": 0.0021688526000000026,
+      "p95_ms": 0.0029053265999999895,
+      "p99_ms": 0.0029053265999999895,
+      "ops_per_sec": 461073.28824466857
+    },
+    {
+      "name": "encode (skip circ-check) x5000",
+      "category": "encode",
+      "median_ms": 0.001831936600000006,
+      "p95_ms": 0.006252045599999997,
+      "p99_ms": 0.006252045599999997,
+      "ops_per_sec": 545870.4193147278
+    },
+    {
+      "name": "getByFingerprint (unlimited) x5000",
+      "category": "registry",
+      "median_ms": 0.00037185980000001566,
+      "p95_ms": 0.002210538399999996,
+      "p99_ms": 0.002210538399999996,
+      "ops_per_sec": 2689185.547886483
+    },
+    {
+      "name": "getByFingerprint (maxSize=200) x5000",
+      "category": "registry",
+      "median_ms": 0.0005045329999999921,
+      "p95_ms": 0.0016737229999999955,
+      "p99_ms": 0.0016737229999999955,
+      "ops_per_sec": 1982030.907790007
+    },
+    {
+      "name": "fingerprint (canonical) x5000",
+      "category": "fingerprint",
+      "median_ms": 0.022903596600000038,
+      "p95_ms": 0.04589452460000002,
+      "p99_ms": 0.04589452460000002,
+      "ops_per_sec": 43661.264973554345
+    },
+    {
+      "name": "fingerprint (JSON.stringify) x5000",
+      "category": "fingerprint",
+      "median_ms": 0.015310371599999963,
+      "p95_ms": 0.050459283200000024,
+      "p99_ms": 0.050459283200000024,
+      "ops_per_sec": 65315.201101977334
+    }
+  ],
+  "results": [
+    {
+      "category": "encode",
+      "name": "encode (with circ-check) x5000",
+      "stats": {
+        "min": 0.0014777668000000063,
+        "median": 0.0021688526000000026,
+        "p95": 0.0029053265999999895,
+        "p99": 0.0029053265999999895,
+        "max": 0.0029053265999999895,
+        "mean": 0.002218915416666667,
+        "stddev": 0.0003919339223908215
+      },
+      "opsPerSec": 461073.28824466857
+    },
+    {
+      "category": "encode",
+      "name": "encode (skip circ-check) x5000",
+      "stats": {
+        "min": 0.0006649511999999958,
+        "median": 0.001831936600000006,
+        "p95": 0.006252045599999997,
+        "p99": 0.006252045599999997,
+        "max": 0.006252045599999997,
+        "mean": 0.0024550098833333333,
+        "stddev": 0.001611137623492133
+      },
+      "opsPerSec": 545870.4193147278
+    },
+    {
+      "category": "registry",
+      "name": "getByFingerprint (unlimited) x5000",
+      "stats": {
+        "min": 0.000086266999999998,
+        "median": 0.00037185980000001566,
+        "p95": 0.002210538399999996,
+        "p99": 0.002210538399999996,
+        "max": 0.002210538399999996,
+        "mean": 0.0006492335999999985,
+        "stddev": 0.0005908652003609992
+      },
+      "opsPerSec": 2689185.547886483
+    },
+    {
+      "category": "registry",
+      "name": "getByFingerprint (maxSize=200) x5000",
+      "stats": {
+        "min": 0.0002778048000000126,
+        "median": 0.0005045329999999921,
+        "p95": 0.0016737229999999955,
+        "p99": 0.0016737229999999955,
+        "max": 0.0016737229999999955,
+        "mean": 0.0006849457833333323,
+        "stddev": 0.00046860944470048297
+      },
+      "opsPerSec": 1982030.907790007
+    },
+    {
+      "category": "fingerprint",
+      "name": "fingerprint (canonical) x5000",
+      "stats": {
+        "min": 0.01543080319999999,
+        "median": 0.022903596600000038,
+        "p95": 0.04589452460000002,
+        "p99": 0.04589452460000002,
+        "max": 0.04589452460000002,
+        "mean": 0.023989145549999997,
+        "stddev": 0.007506133368565678
+      },
+      "opsPerSec": 43661.264973554345
+    },
+    {
+      "category": "fingerprint",
+      "name": "fingerprint (JSON.stringify) x5000",
+      "stats": {
+        "min": 0.012853169800000069,
+        "median": 0.015310371599999963,
+        "p95": 0.050459283200000024,
+        "p99": 0.050459283200000024,
+        "max": 0.050459283200000024,
+        "mean": 0.018451899699999996,
+        "stddev": 0.009830665447640463
+      },
+      "opsPerSec": 65315.201101977334
+    }
+  ]
+}

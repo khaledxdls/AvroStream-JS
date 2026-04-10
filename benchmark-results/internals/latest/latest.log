@@ -1,0 +1,30 @@
+=== Internals Micro-Benchmark ===
+node      : v24.14.0
+platform  : linux x64
+warmup    : 5  rounds: 12  batch: 5000
+
+--- encode(): circular-ref check overhead ---
+  encode (with circ-check) x5000             median=2.2 µs p95=2.9 µs 461.1 K ops/s
+  encode (skip circ-check) x5000             median=1.8 µs p95=6.3 µs 545.9 K ops/s
+  overhead: +18.4% (circ-check vs skip)
+
+--- registry lookup: LRU vs unlimited ---
+  getByFingerprint (unlimited) x5000         median=372 ns p95=2.2 µs 2.69 M ops/s
+  getByFingerprint (maxSize=200) x5000       median=505 ns p95=1.7 µs 1.98 M ops/s
+  LRU overhead: +35.7%
+
+--- fingerprint: canonical form vs JSON.stringify ---
+  fingerprint (canonical) x5000              median=22.9 µs p95=45.9 µs 43.7 K ops/s
+  fingerprint (JSON.stringify) x5000         median=15.3 µs p95=50.5 µs 65.3 K ops/s
+  canonical overhead: +49.6% (one-time cost at schema registration)
+
+=== Summary ===
+circ-check overhead on encode : +18.4%
+LRU bookkeeping overhead      : +35.7%
+canonical form overhead       : +49.6% (registration-time only, not hot path)
+
+=== Artifacts ===
+json    : /home/khaleddelassi/AvroStream JS/benchmark-results/internals/latest/latest.json
+csv     : /home/khaleddelassi/AvroStream JS/benchmark-results/internals/latest/latest.csv
+markdown: /home/khaleddelassi/AvroStream JS/benchmark-results/internals/latest/latest.md
+log     : /home/khaleddelassi/AvroStream JS/benchmark-results/internals/latest/latest.log

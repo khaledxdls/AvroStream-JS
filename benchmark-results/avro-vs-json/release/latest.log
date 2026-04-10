@@ -6,30 +6,30 @@ rounds       : 10
 scenarios    : 20,000, 50,000, 100,000
 
 === CheckoutEvent workload (20,000 records) ===
-encode  avro=26.42ms (756,964 ops/s) json=38.22ms (523,349 ops/s) avro-vs-json=1.45x
-decode  avro=23.56ms (849,071 ops/s) json=28.22ms (708,743 ops/s) avro-vs-json=1.20x
+encode  avro=79.00ms (253,175 ops/s) json=62.78ms (318,564 ops/s) avro-vs-json=0.79x
+decode  avro=27.59ms (725,029 ops/s) json=33.90ms (589,928 ops/s) avro-vs-json=1.23x
 sizes   avro=2.76 MB json=6.82 MB reduction=59.54%
-stdev   avro-enc=3.53ms json-enc=13.15ms avro-dec=4.97ms json-dec=1.01ms
-p95     avro-enc=33.95ms json-enc=75.23ms avro-dec=36.77ms json-dec=30.32ms
+stdev   avro-enc=51.45ms json-enc=22.47ms avro-dec=6.67ms json-dec=5.87ms
+p95     avro-enc=209.58ms json-enc=114.92ms avro-dec=46.32ms json-dec=51.23ms
 
 === CheckoutEvent workload (50,000 records) ===
-encode  avro=58.76ms (850,958 ops/s) json=101.36ms (493,279 ops/s) avro-vs-json=1.73x
-decode  avro=58.89ms (849,086 ops/s) json=70.60ms (708,203 ops/s) avro-vs-json=1.20x
+encode  avro=124.23ms (402,472 ops/s) json=258.12ms (193,708 ops/s) avro-vs-json=2.08x
+decode  avro=106.71ms (468,555 ops/s) json=83.40ms (599,544 ops/s) avro-vs-json=0.78x
 sizes   avro=6.90 MB json=17.05 MB reduction=59.54%
-stdev   avro-enc=8.56ms json-enc=21.88ms avro-dec=1.31ms json-dec=26.96ms
-p95     avro-enc=76.28ms json-enc=158.27ms avro-dec=63.20ms json-dec=147.11ms
+stdev   avro-enc=63.28ms json-enc=86.79ms avro-dec=123.97ms json-dec=8.98ms
+p95     avro-enc=313.33ms json-enc=388.15ms avro-dec=451.61ms json-dec=110.64ms
 
 === CheckoutEvent workload (100,000 records) ===
-encode  avro=123.88ms (807,212 ops/s) json=254.58ms (392,802 ops/s) avro-vs-json=2.06x
-decode  avro=117.83ms (848,648 ops/s) json=140.77ms (710,378 ops/s) avro-vs-json=1.19x
+encode  avro=235.54ms (424,547 ops/s) json=539.80ms (185,254 ops/s) avro-vs-json=2.29x
+decode  avro=258.21ms (387,279 ops/s) json=169.35ms (590,478 ops/s) avro-vs-json=0.66x
 sizes   avro=13.79 MB json=34.09 MB reduction=59.54%
-stdev   avro-enc=15.56ms json-enc=29.63ms avro-dec=4.60ms json-dec=2.31ms
-p95     avro-enc=146.61ms json-enc=331.29ms avro-dec=131.07ms json-dec=146.87ms
+stdev   avro-enc=215.00ms json-enc=265.99ms avro-dec=130.66ms json-dec=64.60ms
+p95     avro-enc=911.13ms json-enc=1240.68ms avro-dec=552.84ms json-dec=346.35ms
 
 === Summary ===
-20,000 recs: size 59.54% smaller (avro vs json), encode 30.86%, decode 16.53% (positive means Avro faster)
-50,000 recs: size 59.54% smaller (avro vs json), encode 42.03%, decode 16.59% (positive means Avro faster)
-100,000 recs: size 59.54% smaller (avro vs json), encode 51.34%, decode 16.29% (positive means Avro faster)
+20,000 recs: size 59.54% smaller (avro vs json), encode -25.83%, decode 18.63% (positive means Avro faster)
+50,000 recs: size 59.54% smaller (avro vs json), encode 51.87%, decode -27.96% (positive means Avro faster)
+100,000 recs: size 59.54% smaller (avro vs json), encode 56.36%, decode -52.47% (positive means Avro faster)
 
 === Artifacts ===
 json    : benchmark-results/avro-vs-json/release/latest.json

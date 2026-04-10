@@ -46,6 +46,8 @@
     "bench:s2s:release": "npm run build && BENCHMARK_NAME='Server-to-Server HTTP Benchmark (JSON vs Avro)' OUTPUT_DIR=benchmark-results/s2s/release REQUESTS=12000 WARMUP=1200 CONCURRENCY=96 node scripts/benchmark-e2e-web.mjs",
     "bench:schema": "node scripts/benchmark-schema.mjs",
     "bench:schema:release": "ROUNDS=15 WARMUP_ROUNDS=5 node scripts/benchmark-schema.mjs",
+    "bench:internals": "node scripts/benchmark-internals.mjs",
+    "bench:internals:release": "ROUNDS=20 WARMUP_ROUNDS=8 BATCH_SIZE=10000 node scripts/benchmark-internals.mjs",
     "bench:dashboard": "node scripts/generate-benchmark-dashboard.mjs",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

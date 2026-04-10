@@ -7,22 +7,22 @@ warmup       : 1,200 per mode
 concurrency  : 96
 
 === JSON ===
-latency   median=22.47ms p95=49.31ms avg=27.47ms stddev=37.07ms
-throughput: 3,488 req/s
+latency   median=55.97ms p95=255.30ms p99=680.13ms avg=88.37ms stddev=126.10ms
+throughput: 1,086 req/s
 bytes     req=3.29 MB (287.4 avg)
           res=1.19 MB (104.3 avg)
 
 === AVRO ===
-latency   median=23.74ms p95=42.66ms avg=27.05ms stddev=17.15ms
-throughput: 3,543 req/s
-bytes     req=1.67 MB (145.5 avg)
-          res=518.55 KB (44.3 avg)
+latency   median=52.17ms p95=190.50ms p99=350.97ms avg=76.65ms stddev=68.45ms
+throughput: 1,251 req/s
+bytes     req=1.68 MB (146.5 avg)
+          res=530.27 KB (45.3 avg)
 
 === Delta (Avro vs JSON) ===
-median latency : -5.66% (slower)
-throughput     : 1.56% (higher)
-request bytes  : 49.37% smaller
-response bytes : 57.55% smaller
+median latency : 6.79% (faster)
+throughput     : 15.23% (higher)
+request bytes  : 49.03% smaller
+response bytes : 56.59% smaller
 
 === Artifacts ===
 json    : benchmark-results/s2s/release/latest.json

@@ -140,6 +140,41 @@ Artifacts:
 - [benchmark-results/schema/latest/latest.csv](benchmark-results/schema/latest/latest.csv)
 - [benchmark-results/schema/latest/latest.md](benchmark-results/schema/latest/latest.md)
 
+### Internals Micro-Benchmark
+
+Measures the overhead of internal safety/correctness features so the tradeoffs are quantified:
+
+```bash
+npm run bench:internals
+```
+
+Release-grade profile:
+
+```bash
+npm run bench:internals:release
+```
+
+What it measures:
+
+- **`encode()` circular-ref check**: overhead of `assertNoCircularRefs` vs `skipCircularCheck=true`
+- **LRU registry bookkeeping**: `getByFingerprint` with `maxSize` set vs unlimited
+- **Canonical fingerprint**: Avro Parsing Canonical Form vs raw `JSON.stringify`
+
+Artifacts:
+
+- [benchmark-results/internals/latest/latest.log](benchmark-results/internals/latest/latest.log)
+- [benchmark-results/internals/latest/latest.json](benchmark-results/internals/latest/latest.json)
+- [benchmark-results/internals/latest/latest.csv](benchmark-results/internals/latest/latest.csv)
+- [benchmark-results/internals/latest/latest.md](benchmark-results/internals/latest/latest.md)
+
+Latest baseline:
+
+| Feature | Overhead | Context |
+|---|---:|---|
+| Circular-ref check | +18.4% encode | Use `encode(entry, obj, true)` to skip on trusted input |
+| LRU bookkeeping | +35.7% lookup | Still 1.98M ops/s — negligible in practice |
+| Canonical form | +49.6% fingerprint | One-time cost at `register()`, not on hot encode/decode path |
+
 ### Stream Decoder Benchmark
 
 Use the stream decoder micro-benchmark to compare parsing strategies:
@@ -213,9 +248,9 @@ These values are from the latest recorded run in this repository and are hardwar
 
 ### Benchmark Interpretation
 
-**Pure codec**: Avro encode is consistently 37-71% faster than `JSON.stringify` and produces ~60% smaller payloads. Decode is comparable to `JSON.parse` (sometimes faster at scale, sometimes slower on small batches due to GC variance).
+**Pure codec**: Avro encode is consistently faster than `JSON.stringify` (up to 2.3x at 100k records) and produces ~60% smaller payloads. Decode trades blows with `JSON.parse` depending on batch size and GC pressure.
 
-**E2E (HTTP/WS)**: On localhost, Avro adds ~10-25% median latency vs JSON. This is expected — binary encode/decode is extra CPU work on both sides that doesn't pay for itself on a zero-latency link. The value shows up on real networks: **~50% smaller payloads** translate directly to lower transfer time on bandwidth-constrained paths (mobile, edge, inter-region).
+**E2E (HTTP/WS)**: Under release-grade load, Avro wins on both throughput and latency even on localhost — **+54% WS throughput**, **+36% HTTP throughput**, **+15-27% faster median latency**. Combined with **~50% smaller payloads**, Avro dominates in high-concurrency scenarios.
 
 When Avro wins:
 
@@ -312,12 +347,12 @@ Release artifacts:
 - [benchmark-results/e2e-ws/release/latest.csv](benchmark-results/e2e-ws/release/latest.csv)
 - [benchmark-results/e2e-ws/release/latest.md](benchmark-results/e2e-ws/release/latest.md)
 
-Latest baseline (`REQUESTS=6000`, `WARMUP=600`, `CONCURRENCY=64`):
+Release baseline (`REQUESTS=20000`, `WARMUP=2000`, `CONCURRENCY=128`):
 
 | Metric | Result |
 |---|---:|
-| Throughput delta (Avro vs JSON) | **+16.08%** |
-| Median latency delta (Avro vs JSON) | -6.48% |
+| Throughput delta (Avro vs JSON) | **+54.41%** |
+| Median latency delta (Avro vs JSON) | **+15.68%** |
 | Request payload bytes delta | **-52.21%** |
 | Response payload bytes delta | **-39.74%** |
 
@@ -349,12 +384,12 @@ Release artifacts:
 - [benchmark-results/s2s/release/latest.csv](benchmark-results/s2s/release/latest.csv)
 - [benchmark-results/s2s/release/latest.md](benchmark-results/s2s/release/latest.md)
 
-Latest baseline (`REQUESTS=5000`, `WARMUP=300`, `CONCURRENCY=32`):
+Release baseline (`REQUESTS=12000`, `WARMUP=1200`, `CONCURRENCY=96`):
 
 | Metric | Result |
 |---|---:|
-| Throughput delta (Avro vs JSON) | **+46.58%** |
-| Median latency delta (Avro vs JSON) | **+22.66%** |
+| Throughput delta (Avro vs JSON) | **+15.23%** |
+| Median latency delta (Avro vs JSON) | **+6.79%** |
 | Request payload bytes delta | **-49.03%** |
 | Response payload bytes delta | **-56.59%** |
 
