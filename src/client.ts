@@ -56,7 +56,9 @@ export class AvroClient {
     this._fetchImpl = config.fetch ?? globalThis.fetch.bind(globalThis);
     this._networkListener =
       config.networkListener ?? createDefaultNetworkListener(this._config.endpoint);
-    this._registry = new SchemaRegistry();
+    this._registry = new SchemaRegistry({
+      maxSize: config.registryMaxSize,
+    });
     this._debugLogger = new DebugLogger(this._config.debug, config.onMetrics);
 
     // Pre-register any schemas from a manifest.

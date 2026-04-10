@@ -67,4 +67,68 @@ describe('SchemaRegistry', () => {
     expect(registry.size).toBe(0);
     expect(registry.getByKey('/users')).toBeUndefined();
   });
+
+  describe('LRU eviction', () => {
+    const schemaA: AvroRecordSchema = {
+      type: 'record', name: 'A', fields: [{ name: 'x', type: 'int' }],
+    };
+    const schemaB: AvroRecordSchema = {
+      type: 'record', name: 'B', fields: [{ name: 'y', type: 'int' }],
+    };
+    const schemaC: AvroRecordSchema = {
+      type: 'record', name: 'C', fields: [{ name: 'z', type: 'int' }],
+    };
+
+    it('evicts least recently used entry when maxSize is exceeded', () => {
+      const registry = new SchemaRegistry({ maxSize: 2 });
+      const fpA = registry.register(schemaA, '/a');
+      registry.register(schemaB, '/b');
+
+      // A is oldest, should be evicted when C is added.
+      registry.register(schemaC, '/c');
+
+      expect(registry.size).toBe(2);
+      expect(registry.has(fpA)).toBe(false);
+      expect(registry.getByKey('/a')).toBeUndefined();
+      expect(registry.getByKey('/b')).toBeDefined();
+      expect(registry.getByKey('/c')).toBeDefined();
+    });
+
+    it('touching via getByFingerprint prevents eviction', () => {
+      const registry = new SchemaRegistry({ maxSize: 2 });
+      const fpA = registry.register(schemaA, '/a');
+      const fpB = registry.register(schemaB, '/b');
+
+      // Touch A — now B is the oldest.
+      registry.getByFingerprint(fpA);
+      registry.register(schemaC, '/c');
+
+      expect(registry.size).toBe(2);
+      expect(registry.has(fpA)).toBe(true);
+      expect(registry.has(fpB)).toBe(false);
+      expect(registry.getByKey('/b')).toBeUndefined();
+    });
+
+    it('touching via getByKey prevents eviction', () => {
+      const registry = new SchemaRegistry({ maxSize: 2 });
+      registry.register(schemaA, '/a');
+      const fpB = registry.register(schemaB, '/b');
+
+      // Touch A via key lookup — now B is oldest.
+      registry.getByKey('/a');
+      registry.register(schemaC, '/c');
+
+      expect(registry.has(fpB)).toBe(false);
+      expect(registry.getByKey('/a')).toBeDefined();
+      expect(registry.getByKey('/c')).toBeDefined();
+    });
+
+    it('does not evict when maxSize is unset', () => {
+      const registry = new SchemaRegistry();
+      registry.register(schemaA);
+      registry.register(schemaB);
+      registry.register(schemaC);
+      expect(registry.size).toBe(3);
+    });
+  });
 });

@@ -40,6 +40,7 @@ export {
 
 // Schema utilities (advanced / power-user)
 export { SchemaRegistry } from './schema/registry.js';
+export type { RegistryEntry, SchemaRegistryOptions } from './schema/registry.js';
 export { inferSchema } from './schema/inference.js';
 export { fingerprint, fingerprintToHex } from './schema/fingerprint.js';
 

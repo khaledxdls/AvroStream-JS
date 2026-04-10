@@ -1,6 +1,6 @@
 # WebSocket E2E Benchmark (JSON vs Avro)
 
-- Generated: 2026-04-10T05:51:05.966Z
+- Generated: 2026-04-10T06:30:52.365Z
 - Node: v24.14.0
 - Platform: linux x64
 - Endpoint host: 127.0.0.1:43120
@@ -10,13 +10,13 @@
 
 | Mode | Median | p95 | p99 | Throughput | Avg Request Bytes | Avg Response Bytes |
 |---|---:|---:|---:|---:|---:|---:|
-| json | 1.62 ms | 3.43 ms | 18.82 ms | 26,780 msg/s | 179.6 | 78.0 |
-| avro | 2.01 ms | 4.10 ms | 16.13 ms | 24,224 msg/s | 85.8 | 47.0 |
+| json | 1.93 ms | 5.11 ms | 31.53 ms | 18,026 msg/s | 179.6 | 78.0 |
+| avro | 2.06 ms | 5.10 ms | 27.37 ms | 20,923 msg/s | 85.8 | 47.0 |
 
 ## Delta (Avro vs JSON)
 
-- Median latency: -24.27% (slower)
-- Throughput: -9.55% (lower)
+- Median latency: -6.48% (slower)
+- Throughput: 16.08% (higher)
 - Request payload bytes: 52.21% smaller
 - Response payload bytes: 39.74% smaller
 

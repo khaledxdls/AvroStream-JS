@@ -7,20 +7,20 @@ warmup       : 600 per mode
 concurrency  : 64
 
 === JSON ===
-latency   median=1.62ms p95=3.43ms p99=18.82ms avg=2.13ms stddev=2.52ms
-throughput: 26,780 msg/s
+latency   median=1.93ms p95=5.11ms p99=31.53ms avg=3.02ms stddev=4.46ms
+throughput: 18,026 msg/s
 bytes     req=1.13 MB (179.6 avg)
           res=502.73 KB (78.0 avg)
 
 === AVRO ===
-latency   median=2.01ms p95=4.10ms p99=16.13ms avg=2.43ms stddev=1.89ms
-throughput: 24,224 msg/s
+latency   median=2.06ms p95=5.10ms p99=27.37ms avg=2.82ms stddev=3.05ms
+throughput: 20,923 msg/s
 bytes     req=553.08 KB (85.8 avg)
           res=302.93 KB (47.0 avg)
 
 === Delta (Avro vs JSON) ===
-median latency : -24.27% (slower)
-throughput     : -9.55% (lower)
+median latency : -6.48% (slower)
+throughput     : 16.08% (higher)
 request bytes  : 52.21% smaller
 response bytes : 39.74% smaller
 

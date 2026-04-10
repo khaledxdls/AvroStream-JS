@@ -100,6 +100,13 @@ export interface AvroClientConfig {
   readonly networkListener?: NetworkListener;
 
   /**
+   * Maximum number of schemas to keep in the registry.
+   * When exceeded, the least-recently-used schema is evicted.
+   * Unset or 0 means no limit (default).
+   */
+  readonly registryMaxSize?: number;
+
+  /**
    * Runtime schema inference safety limits.
    */
   readonly inference?: InferenceConfig;

@@ -4,28 +4,28 @@ platform : linux x64
 warmup   : 5  rounds   : 10
 
 --- inferSchema() ---
-  inferSchema(flat-10)           median=5.1 µs p95=22.9 µs p99=22.9 µs 196.9 K ops/s
-  inferSchema(flat-50)           median=34.8 µs p95=125.3 µs p99=125.3 µs 28.7 K ops/s
-  inferSchema(nested-3-deep)     median=14.6 µs p95=22.4 µs p99=22.4 µs 68.7 K ops/s
-  inferSchema(nested-5-deep)     median=12.8 µs p95=17.4 µs p99=17.4 µs 78.4 K ops/s
+  inferSchema(flat-10)           median=5.0 µs p95=9.2 µs p99=9.2 µs 201.5 K ops/s
+  inferSchema(flat-50)           median=23.3 µs p95=52.0 µs p99=52.0 µs 43.0 K ops/s
+  inferSchema(nested-3-deep)     median=10.1 µs p95=13.8 µs p99=13.8 µs 99.4 K ops/s
+  inferSchema(nested-5-deep)     median=11.5 µs p95=20.0 µs p99=20.0 µs 87.1 K ops/s
 
 --- fingerprint() ---
-  fingerprint(tiny (3 fields))   median=68.3 µs p95=557.2 µs p99=557.2 µs 14.6 K ops/s
-  fingerprint(medium (50 fields)) median=146.1 µs p95=535.4 µs p99=535.4 µs 6.8 K ops/s
-  fingerprint(nested-3)          median=59.7 µs p95=255.3 µs p99=255.3 µs 16.8 K ops/s
-  fingerprint(nested-5)          median=55.7 µs p95=174.4 µs p99=174.4 µs 18.0 K ops/s
+  fingerprint(tiny (3 fields))   median=100.9 µs p95=1.946 ms p99=1.946 ms 9.9 K ops/s
+  fingerprint(medium (50 fields)) median=193.5 µs p95=310.3 µs p99=310.3 µs 5.2 K ops/s
+  fingerprint(nested-3)          median=61.2 µs p95=286.7 µs p99=286.7 µs 16.3 K ops/s
+  fingerprint(nested-5)          median=61.7 µs p95=269.5 µs p99=269.5 µs 16.2 K ops/s
 
 --- avsc.Type.forSchema() ---
-  forSchema(flat-10)             median=82.4 µs p95=126.4 µs p99=126.4 µs 12.1 K ops/s
-  forSchema(flat-50)             median=147.6 µs p95=593.7 µs p99=593.7 µs 6.8 K ops/s
-  forSchema(nested-3-deep)       median=141.7 µs p95=679.5 µs p99=679.5 µs 7.1 K ops/s
-  forSchema(nested-5-deep)       median=215.0 µs p95=541.3 µs p99=541.3 µs 4.7 K ops/s
+  forSchema(flat-10)             median=76.9 µs p95=160.8 µs p99=160.8 µs 13.0 K ops/s
+  forSchema(flat-50)             median=145.2 µs p95=2.281 ms p99=2.281 ms 6.9 K ops/s
+  forSchema(nested-3-deep)       median=177.2 µs p95=1.704 ms p99=1.704 ms 5.6 K ops/s
+  forSchema(nested-5-deep)       median=190.3 µs p95=946.9 µs p99=946.9 µs 5.3 K ops/s
 
 --- SchemaRegistry round-trip ---
-  registry(flat-10)              median=95.7 µs p95=189.3 µs p99=189.3 µs 10.5 K ops/s
-  registry(flat-50)              median=353.4 µs p95=801.3 µs p99=801.3 µs 2.8 K ops/s
-  registry(nested-3-deep)        median=338.8 µs p95=771.5 µs p99=771.5 µs 3.0 K ops/s
-  registry(nested-5-deep)        median=195.3 µs p95=635.5 µs p99=635.5 µs 5.1 K ops/s
+  registry(flat-10)              median=137.4 µs p95=7.145 ms p99=7.145 ms 7.3 K ops/s
+  registry(flat-50)              median=506.7 µs p95=2.884 ms p99=2.884 ms 2.0 K ops/s
+  registry(nested-3-deep)        median=300.2 µs p95=2.002 ms p99=2.002 ms 3.3 K ops/s
+  registry(nested-5-deep)        median=194.4 µs p95=299.2 µs p99=299.2 µs 5.1 K ops/s
 
 === Artifacts ===
 json    : /home/khaleddelassi/AvroStream JS/benchmark-results/schema/latest/latest.json

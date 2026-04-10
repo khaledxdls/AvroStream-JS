@@ -104,11 +104,14 @@ const client = new AvroClient({
 | `inference` | `object`  | `{ maxDepth: 32, maxNodes: 50000 }` | Runtime inference guardrails for large payloads |
 | `networkListener` | `NetworkListener` | env default | Inject custom online/offline detection strategy |
 | `onMetrics` | `(m: DebugMetrics) => void` | — | Telemetry callback — fires on every encode/decode regardless of `debug` flag |
+| `registryMaxSize` | `number` | `0` (unlimited) | Max schemas in registry before LRU eviction kicks in |
 
 ### Production Guidance
 
 - For large/deep payloads, prefer precompiled schemas via `avro-gen` to bypass synchronous runtime inference.
+- In long-lived server processes with dynamic schemas, set `registryMaxSize` to bound memory growth (e.g. `1000`).
 - Browser and Node.js connectivity checks are abstracted behind `NetworkListener`; inject your own strategy for custom runtimes.
+- Schema fingerprints use the [Avro Parsing Canonical Form](https://avro.apache.org/docs/current/specification/#parsing-canonical-form-for-schemas), ensuring consistent fingerprints regardless of JS object key order and compatibility with other Avro implementations.
 
 ### Schema Pipeline Benchmark
 
@@ -202,9 +205,9 @@ Current baseline summary:
 
 | Records | Encode (Avro faster) | Decode (Avro faster) | Size Reduction |
 |---:|---:|---:|---:|
-| 5,000 | 37.20% | 8.55% | 59.54% |
-| 20,000 | 56.16% | -17.39% | 59.54% |
-| 50,000 | 70.59% | 25.39% | 59.54% |
+| 5,000 | 22.96% | 19.17% | 59.54% |
+| 20,000 | 24.82% | 28.48% | 59.54% |
+| 50,000 | 58.47% | 17.77% | 59.54% |
 
 These values are from the latest recorded run in this repository and are hardware/runtime dependent.
 
@@ -313,8 +316,8 @@ Latest baseline (`REQUESTS=6000`, `WARMUP=600`, `CONCURRENCY=64`):
 
 | Metric | Result |
 |---|---:|
-| Throughput delta (Avro vs JSON) | -9.55% |
-| Median latency delta (Avro vs JSON) | -24.27% |
+| Throughput delta (Avro vs JSON) | **+16.08%** |
+| Median latency delta (Avro vs JSON) | -6.48% |
 | Request payload bytes delta | **-52.21%** |
 | Response payload bytes delta | **-39.74%** |
 
@@ -350,8 +353,8 @@ Latest baseline (`REQUESTS=5000`, `WARMUP=300`, `CONCURRENCY=32`):
 
 | Metric | Result |
 |---|---:|
-| Throughput delta (Avro vs JSON) | -11.65% |
-| Median latency delta (Avro vs JSON) | -16.01% |
+| Throughput delta (Avro vs JSON) | **+46.58%** |
+| Median latency delta (Avro vs JSON) | **+22.66%** |
 | Request payload bytes delta | **-49.03%** |
 | Response payload bytes delta | **-56.59%** |
 
