@@ -1,6 +1,6 @@
 # AvroStream JS
 
-Transparent Avro binary transport layer for JavaScript. Drop-in `fetch` and WebSocket replacement that serializes JSON as compact Avro binary on the wire — **30-60% smaller payloads** with **zero DX friction**.
+Transparent Avro binary transport layer for JavaScript. Drop-in `fetch` and WebSocket replacement that serializes JSON as compact Avro binary on the wire — **~50% smaller payloads** with **zero DX friction**.
 
 ## Features
 
@@ -202,31 +202,36 @@ Current baseline summary:
 
 | Records | Encode (Avro faster) | Decode (Avro faster) | Size Reduction |
 |---:|---:|---:|---:|
-| 5,000 | 26.92% | 10.57% | 59.54% |
-| 20,000 | 42.82% | 8.02% | 59.54% |
-| 50,000 | 43.89% | 19.69% | 59.54% |
+| 5,000 | 37.20% | 8.55% | 59.54% |
+| 20,000 | 56.16% | -17.39% | 59.54% |
+| 50,000 | 70.59% | 25.39% | 59.54% |
 
 These values are from the latest recorded run in this repository and are hardware/runtime dependent.
 
 ### Benchmark Interpretation
 
-When Avro usually wins:
+**Pure codec**: Avro encode is consistently 37-71% faster than `JSON.stringify` and produces ~60% smaller payloads. Decode is comparable to `JSON.parse` (sometimes faster at scale, sometimes slower on small batches due to GC variance).
 
-- Payload size matters (network-bound paths, mobile, inter-region traffic).
-- Structured records are stable and repetitive (high key-name overhead in JSON).
-- CPU budget is sufficient for binary encode/decode and schema negotiation is amortized.
+**E2E (HTTP/WS)**: On localhost, Avro adds ~10-25% median latency vs JSON. This is expected — binary encode/decode is extra CPU work on both sides that doesn't pay for itself on a zero-latency link. The value shows up on real networks: **~50% smaller payloads** translate directly to lower transfer time on bandwidth-constrained paths (mobile, edge, inter-region).
 
-When JSON can win:
+When Avro wins:
 
-- Very small messages (< ~10 fields) on ultra-low-latency local links where per-message allocation cost matters most.
-- Systems requiring human-readable payloads directly in logs without separate tooling.
-- One-off scripts or prototypes where schema management overhead isn't worth it.
+- Bandwidth-constrained paths (mobile, edge, inter-region, metered connections).
+- High-volume pipelines where ~50% smaller payloads compound into significant savings.
+- Structured, repetitive records with high key-name overhead in JSON.
+- Bulk/streaming workloads where codec speed dominates over per-request overhead.
 
-How to read these benchmark outputs:
+When JSON is the better choice:
+
+- Localhost or same-datacenter with sub-millisecond RTT where CPU overhead exceeds transfer savings.
+- Systems requiring human-readable payloads in logs without tooling.
+- Prototyping or low-volume APIs where schema management isn't worth it.
+
+How to read benchmark outputs:
 
 - `Throughput delta` > 0 means Avro handles more requests/messages per second.
-- `Median latency delta` > 0 means Avro is faster on median latency; < 0 means slower.
-- `Request/Response payload bytes delta` shows bandwidth savings, where Avro consistently performs best in this repo.
+- `Median latency delta` > 0 means Avro is faster; < 0 means Avro is slower (expected on localhost).
+- `Payload bytes delta` shows bandwidth savings — Avro's primary value proposition.
 - Use release profiles for publish decisions, not quick smoke runs.
 
 Consolidated dashboard:
@@ -304,14 +309,14 @@ Release artifacts:
 - [benchmark-results/e2e-ws/release/latest.csv](benchmark-results/e2e-ws/release/latest.csv)
 - [benchmark-results/e2e-ws/release/latest.md](benchmark-results/e2e-ws/release/latest.md)
 
-Latest baseline (`REQUESTS=20000`, `WARMUP=2000`, `CONCURRENCY=128`):
+Latest baseline (`REQUESTS=6000`, `WARMUP=600`, `CONCURRENCY=64`):
 
 | Metric | Result |
 |---|---:|
-| Throughput delta (Avro vs JSON) | **+36.36%** |
-| Median latency delta (Avro vs JSON) | **+8.56% faster** |
-| Request payload bytes delta | -52.21% |
-| Response payload bytes delta | -39.74% |
+| Throughput delta (Avro vs JSON) | -9.55% |
+| Median latency delta (Avro vs JSON) | -24.27% |
+| Request payload bytes delta | **-52.21%** |
+| Response payload bytes delta | **-39.74%** |
 
 ### Server-to-Server Benchmark
 
@@ -341,14 +346,14 @@ Release artifacts:
 - [benchmark-results/s2s/release/latest.csv](benchmark-results/s2s/release/latest.csv)
 - [benchmark-results/s2s/release/latest.md](benchmark-results/s2s/release/latest.md)
 
-Release baseline summary (`REQUESTS=12000`, `WARMUP=1200`, `CONCURRENCY=96`):
+Latest baseline (`REQUESTS=5000`, `WARMUP=300`, `CONCURRENCY=32`):
 
 | Metric | Result |
 |---|---:|
-| Throughput delta (Avro vs JSON) | +1.56% |
-| Median latency delta (Avro vs JSON) | -5.66% |
-| Request payload bytes delta | -49.37% |
-| Response payload bytes delta | -57.55% |
+| Throughput delta (Avro vs JSON) | -11.65% |
+| Median latency delta (Avro vs JSON) | -16.01% |
+| Request payload bytes delta | **-49.03%** |
+| Response payload bytes delta | **-56.59%** |
 
 ## Error Handling
 
@@ -365,7 +370,7 @@ import {
 } from 'avrostream-js';
 ```
 
-## Wire Format
+## Wire Format (v0.1)
 
 Every HTTP payload is framed as:
 
@@ -385,7 +390,14 @@ WebSocket frames add a message-type prefix:
 [1 byte: version (0x01)][1 byte: type-length][N bytes: UTF-8 type string][8 bytes: fingerprint][data]
 ```
 
-The leading version byte reserves space for future wire-format evolution without a breaking change.
+Streaming responses use a header + chunked record format:
+
+```
+Header:  [1 byte: version (0x01)][8 bytes: fingerprint]
+Records: [4 bytes: record length (big-endian)][N bytes: Avro data] ... repeating
+```
+
+The leading version byte reserves space for future wire-format evolution without a breaking change. `parseWireFrame` rejects unknown versions and enforces that schema-inline frames (`0x02`) are only handled by the transport layer.
 
 ## License
 

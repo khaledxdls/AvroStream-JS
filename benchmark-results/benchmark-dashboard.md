@@ -1,6 +1,6 @@
 # Benchmark Dashboard
 
-Generated: 2026-04-08T08:48:26.301Z
+Generated: 2026-04-10T06:50:00.000Z
 
 This page consolidates benchmark outputs from all folders under `benchmark-results`.
 
@@ -9,9 +9,9 @@ This page consolidates benchmark outputs from all folders under `benchmark-resul
 
 | Records | Encode (Avro faster) | Decode (Avro faster) | Size Reduction |
 |---:|---:|---:|---:|
-| 5,000 | 26.92% | 10.57% | 59.54% |
-| 20,000 | 42.82% | 8.02% | 59.54% |
-| 50,000 | 43.89% | 19.69% | 59.54% |
+| 5,000 | 37.20% | 8.55% | 59.54% |
+| 20,000 | 56.16% | -17.39% | 59.54% |
+| 50,000 | 70.59% | 25.39% | 59.54% |
 
 ### Avro vs JSON — release
 - Source: [benchmark-results/avro-vs-json/release/latest.md](benchmark-results/avro-vs-json/release/latest.md) · [benchmark-results/avro-vs-json/release/latest.csv](benchmark-results/avro-vs-json/release/latest.csv)
@@ -29,63 +29,74 @@ This page consolidates benchmark outputs from all folders under `benchmark-resul
 |---:|---:|---:|---:|
 | 1,000 | 11.69% | -74.68% | 59.54% |
 
-### E2E Web — latest
+### Schema Pipeline — latest
+- Source: [benchmark-results/schema/latest/latest.md](benchmark-results/schema/latest/latest.md) · [benchmark-results/schema/latest/latest.csv](benchmark-results/schema/latest/latest.csv)
+
+| Operation | Shape | Median | Throughput |
+|---|---|---:|---:|
+| inferSchema | flat-10 | 5.1 us | 196.9 K ops/s |
+| inferSchema | flat-50 | 34.8 us | 28.7 K ops/s |
+| fingerprint | tiny (3 fields) | 68.3 us | 14.6 K ops/s |
+| fingerprint | medium (50 fields) | 146.1 us | 6.8 K ops/s |
+| forSchema | flat-10 | 82.4 us | 12.1 K ops/s |
+| registry round-trip | flat-10 | 95.7 us | 10.5 K ops/s |
+
+### E2E Web (HTTP) — latest
 - Source: [benchmark-results/e2e-web/latest/latest.md](benchmark-results/e2e-web/latest/latest.md) · [benchmark-results/e2e-web/latest/latest.csv](benchmark-results/e2e-web/latest/latest.csv)
 
 | Metric | Value |
 |---|---:|
-| Requests/Messages | 1,500 |
-| Concurrency | 24 |
-| Throughput delta (Avro vs JSON) | 11.12% |
-| Median latency delta (Avro vs JSON) | -10.26% |
-| Request payload bytes delta | 49.38% |
-| Response payload bytes delta | 57.55% |
+| Requests | 5,000 |
+| Concurrency | 32 |
+| Throughput delta (Avro vs JSON) | -11.65% |
+| Median latency delta (Avro vs JSON) | -16.01% |
+| Request payload bytes delta | -49.03% |
+| Response payload bytes delta | -56.59% |
 
 ### E2E WebSocket — latest
 - Source: [benchmark-results/e2e-ws/latest/latest.md](benchmark-results/e2e-ws/latest/latest.md) · [benchmark-results/e2e-ws/latest/latest.csv](benchmark-results/e2e-ws/latest/latest.csv)
 
 | Metric | Value |
 |---|---:|
-| Requests/Messages | 1,200 |
-| Concurrency | 32 |
-| Throughput delta (Avro vs JSON) | 4.69% |
-| Median latency delta (Avro vs JSON) | -16.00% |
-| Request payload bytes delta | 52.78% |
-| Response payload bytes delta | 41.03% |
+| Messages | 6,000 |
+| Concurrency | 64 |
+| Throughput delta (Avro vs JSON) | -9.55% |
+| Median latency delta (Avro vs JSON) | -24.27% |
+| Request payload bytes delta | -52.21% |
+| Response payload bytes delta | -39.74% |
 
 ### E2E WebSocket — release
 - Source: [benchmark-results/e2e-ws/release/latest.md](benchmark-results/e2e-ws/release/latest.md) · [benchmark-results/e2e-ws/release/latest.csv](benchmark-results/e2e-ws/release/latest.csv)
 
 | Metric | Value |
 |---|---:|
-| Requests/Messages | 20,000 |
+| Messages | 20,000 |
 | Concurrency | 128 |
 | Throughput delta (Avro vs JSON) | -18.85% |
 | Median latency delta (Avro vs JSON) | -31.75% |
-| Request payload bytes delta | 52.77% |
-| Response payload bytes delta | 41.03% |
+| Request payload bytes delta | -52.77% |
+| Response payload bytes delta | -41.03% |
 
 ### Server-to-Server HTTP — latest
 - Source: [benchmark-results/s2s/latest/latest.md](benchmark-results/s2s/latest/latest.md) · [benchmark-results/s2s/latest/latest.csv](benchmark-results/s2s/latest/latest.csv)
 
 | Metric | Value |
 |---|---:|
-| Requests/Messages | 4,000 |
+| Requests | 4,000 |
 | Concurrency | 64 |
 | Throughput delta (Avro vs JSON) | 16.52% |
 | Median latency delta (Avro vs JSON) | -2.05% |
-| Request payload bytes delta | 49.37% |
-| Response payload bytes delta | 57.55% |
+| Request payload bytes delta | -49.37% |
+| Response payload bytes delta | -57.55% |
 
 ### Server-to-Server HTTP — release
 - Source: [benchmark-results/s2s/release/latest.md](benchmark-results/s2s/release/latest.md) · [benchmark-results/s2s/release/latest.csv](benchmark-results/s2s/release/latest.csv)
 
 | Metric | Value |
 |---|---:|
-| Requests/Messages | 12,000 |
+| Requests | 12,000 |
 | Concurrency | 96 |
 | Throughput delta (Avro vs JSON) | 1.56% |
 | Median latency delta (Avro vs JSON) | -5.66% |
-| Request payload bytes delta | 49.37% |
-| Response payload bytes delta | 57.55% |
-
+| Request payload bytes delta | -49.37% |
+| Response payload bytes delta | -57.55% |
