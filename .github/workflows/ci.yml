@@ -65,6 +65,7 @@ jobs:
     needs: [test, smoke-node18]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: avro
 
     steps:
       - uses: actions/checkout@v4
