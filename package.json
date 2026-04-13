@@ -1,6 +1,6 @@
 {
   "name": "avrostream-js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Transparent Avro binary transport layer for JavaScript — drop-in fetch/WebSocket replacement that encodes JSON as Avro on the wire.",
   "type": "module",
   "main": "./dist/index.cjs",
