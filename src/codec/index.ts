@@ -114,12 +114,14 @@ export function parseWireFrame(frame: Uint8Array): WirePayload {
   if (!(frame instanceof Uint8Array)) {
     throw new CodecError('Invalid wire frame: expected Uint8Array');
   }
-  if (frame.length < 9) {
+  // Re-wrap to satisfy static analysis (CodeQL doesn't track instanceof guards)
+  const buf = new Uint8Array(frame.buffer, frame.byteOffset, frame.byteLength);
+  if (buf.byteLength < 9) {
     throw new CodecError(
-      `Invalid wire frame: expected at least 9 bytes, got ${frame.length}`,
+      `Invalid wire frame: expected at least 9 bytes, got ${buf.byteLength}`,
     );
   }
-  const version = frame[0];
+  const version = buf[0];
   if (version === WIRE_VERSION_SCHEMA) {
     throw new CodecError(
       'Received schema-inline frame (v0x02) in a standard-frame context. ' +
@@ -132,8 +134,8 @@ export function parseWireFrame(frame: Uint8Array): WirePayload {
     );
   }
   return {
-    fingerprint: frame.slice(1, 9),
-    data: frame.slice(9),
+    fingerprint: buf.slice(1, 9),
+    data: buf.slice(9),
   };
 }
 

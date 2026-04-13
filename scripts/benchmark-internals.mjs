@@ -130,17 +130,27 @@ const checkoutSchema = {
   ],
 };
 
+function randomIntBelow(max) {
+  // Rejection sampling to avoid modulo bias
+  const limit = 256 - (256 % max);
+  let b;
+  do {
+    b = randomBytes(1)[0];
+  } while (b >= limit);
+  return b % max;
+}
+
 function makeCheckoutRecord() {
   const bytes = randomBytes(16);
   return {
     orderId: `order_${bytes.subarray(0, 4).toString('hex')}`,
     userId: `user_${bytes.subarray(4, 8).toString('hex')}`,
-    amount: Math.round((bytes.readUInt16BE(8) / 65535) * 50000) / 100,
+    amount: bytes.readUInt16BE(8) / 100,
     currency: 'USD',
-    items: (bytes[10] % 20) + 1,
+    items: randomIntBelow(20) + 1,
     timestamp: Date.now(),
     region: 'us-east-1',
-    coupon: bytes[11] > 179 ? 'SAVE10' : null,
+    coupon: randomIntBelow(10) >= 7 ? 'SAVE10' : null,
   };
 }
 
