@@ -82,6 +82,6 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      # OIDC trusted publishing — no stored NPM_TOKEN needed.
+      # Configure at npmjs.com > Package Settings > Trusted Publishing.
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
