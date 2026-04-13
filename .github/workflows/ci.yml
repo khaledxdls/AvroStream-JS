@@ -14,8 +14,9 @@ jobs:
     name: Test (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [20, 22]
 
     steps:
       - uses: actions/checkout@v4
@@ -30,9 +31,38 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  # Verify the built package can be imported on Node 18 (EOL but still
+  # in the wild).  Dev tooling (Vitest/Rolldown) requires >=20, so we
+  # only smoke-test the dist output here — no full test suite.
+  smoke-node18:
+    name: Smoke test (Node 18)
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Smoke test — ESM import
+        run: node --input-type=module -e "import { encode, decode, SchemaRegistry } from './dist/index.js'; console.log('ESM OK');"
+
+      - name: Smoke test — CJS require
+        run: node -e "const { encode, decode, SchemaRegistry } = require('./dist/index.cjs'); console.log('CJS OK');"
+
   publish:
     name: Publish to npm
-    needs: test
+    needs: [test, smoke-node18]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
