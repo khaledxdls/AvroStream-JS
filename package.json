@@ -1,6 +1,6 @@
 {
   "name": "avrostream-js",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Transparent Avro binary transport layer for JavaScript — drop-in fetch/WebSocket replacement that encodes JSON as Avro on the wire.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -74,7 +74,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/khaledxdls/AvroStream-JS"
+    "url": "git+https://github.com/khaledxdls/AvroStream-JS.git"
   },
   "engines": {
     "node": ">=18.0.0"
