@@ -56,8 +56,12 @@ const HEX_CHARS = '0123456789abcdef';
  * Convert a fingerprint Uint8Array to a hex string for display/logging.
  */
 export function fingerprintToHex(fp: Uint8Array): string {
+  if (!(fp instanceof Uint8Array)) {
+    throw new TypeError('Expected Uint8Array');
+  }
   let hex = '';
-  for (let i = 0; i < fp.length; i++) {
+  const len = fp.byteLength;
+  for (let i = 0; i < len; i++) {
     const b = fp[i]!;
     hex += HEX_CHARS[b >> 4]! + HEX_CHARS[b & 0xf]!;
   }

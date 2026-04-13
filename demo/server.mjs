@@ -87,16 +87,17 @@ function avroMiddleware(schemaKey) {
 
     if (isAvro && req.body?.length > 0) {
       try {
-        const raw = req.body;
+        // Ensure raw is always a Buffer, not an array or string from parameter tampering
+        const raw = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body);
         const version = raw[0];
 
         if (version === 0x02) {
           // Schema-inline frame: [version][4-byte len][schema JSON][8-byte fp][data]
           const schemaLen = raw.readUInt32BE(1);
-          const schemaJson = raw.slice(5, 5 + schemaLen).toString('utf8');
+          const schemaJson = raw.subarray(5, 5 + schemaLen).toString('utf8');
           const schema = JSON.parse(schemaJson);
-          const fp = raw.slice(5 + schemaLen, 5 + schemaLen + 8);
-          const data = raw.slice(5 + schemaLen + 8);
+          const fp = raw.subarray(5 + schemaLen, 5 + schemaLen + 8);
+          const data = raw.subarray(5 + schemaLen + 8);
 
           // Register the new schema the client sent us
           registry.register(schema, schemaKey);

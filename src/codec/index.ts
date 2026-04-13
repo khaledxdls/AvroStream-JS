@@ -111,6 +111,9 @@ export function frameForWire(payload: WirePayload): Uint8Array {
  * Parse a wire frame back into fingerprint + data.
  */
 export function parseWireFrame(frame: Uint8Array): WirePayload {
+  if (!(frame instanceof Uint8Array)) {
+    throw new CodecError('Invalid wire frame: expected Uint8Array');
+  }
   if (frame.length < 9) {
     throw new CodecError(
       `Invalid wire frame: expected at least 9 bytes, got ${frame.length}`,
